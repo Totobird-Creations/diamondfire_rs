@@ -1,9 +1,4 @@
-use crate::core::{
-    clone::Clone,
-    intrinsics::transmute_unchecked,
-    macros::derive,
-    marker::Copy
-};
+use core::intrinsics::transmute_unchecked;
 
 
 #[expect(non_camel_case_types)]

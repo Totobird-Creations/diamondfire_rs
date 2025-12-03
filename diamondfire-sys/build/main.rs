@@ -16,14 +16,14 @@ pub use actiondump::ActionDump;
 
 
 pub fn main() {
-    fs::create_dir_all("src/diamondfire/generated").unwrap();
+    fs::create_dir_all("src/generated").unwrap();
 
     let ad = read_json::<_, ActionDump>(File::open("../actiondump.json").unwrap()).unwrap();
 
     {
         let mut taken_names = HashSet::new();
-        let mut f = File::create("src/diamondfire/generated/sound.rs").unwrap();
-        writeln!(f, "use crate::diamondfire::*;").unwrap();
+        let mut f = File::create("src/generated/sound.rs").unwrap();
+        writeln!(f, "use crate::*;").unwrap();
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for sound in ad.sounds {
             let name = identify(&sound.icon.name);
@@ -41,8 +41,8 @@ pub fn main() {
     }
 
     {
-        let mut f = File::create("src/diamondfire/generated/particle.rs").unwrap();
-        writeln!(f, "use crate::diamondfire::*;").unwrap();
+        let mut f = File::create("src/generated/particle.rs").unwrap();
+        writeln!(f, "use crate::*;").unwrap();
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for mut particle in ad.particles {
             if (! particle.icon.deprecation.is_empty()) {
@@ -64,8 +64,8 @@ pub fn main() {
     }
 
     {
-        let mut f = File::create("src/diamondfire/generated/potion.rs").unwrap();
-        writeln!(f, "use crate::diamondfire::*;").unwrap();
+        let mut f = File::create("src/generated/potion.rs").unwrap();
+        writeln!(f, "use crate::*;").unwrap();
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for potion in ad.potions {
             if (! potion.icon.deprecation.is_empty()) {
@@ -77,8 +77,8 @@ pub fn main() {
     }
 
     {
-        let mut f = File::create("src/diamondfire/generated/action.rs").unwrap();
-        writeln!(f, "use crate::diamondfire::*;").unwrap();
+        let mut f = File::create("src/generated/action.rs").unwrap();
+        writeln!(f, "use crate::*;").unwrap();
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for action in ad.actions {
             if (! action.icon.deprecation.is_empty()) {

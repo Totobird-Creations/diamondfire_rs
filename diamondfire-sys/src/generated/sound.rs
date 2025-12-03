@@ -1,4 +1,4 @@
-use crate::diamondfire::*;
+use crate::*;
 unsafe extern "C" {
     pub safe fn DF_SOUND__BasaltSPECIALSpace_DeltasSPECIALSpace_AmbienceSPECIALSpace_Additions(pitch : df_number, volume : df_number) -> df_sound;
     pub safe fn DF_SOUND__BasaltSPECIALSpace_DeltasSPECIALSpace_AmbienceSPECIALSpace_Additions__basaltground1(pitch : df_number, volume : df_number) -> df_sound;

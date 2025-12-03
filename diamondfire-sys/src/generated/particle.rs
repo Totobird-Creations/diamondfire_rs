@@ -1,4 +1,4 @@
-use crate::diamondfire::*;
+use crate::*;
 unsafe extern "C" {
     pub safe fn DF_PARTICLE__rain__(amount : df_number, spread_x : df_number, spread_y : df_number) -> df_particle;
     pub safe fn DF_PARTICLE__underwater__(amount : df_number, spread_x : df_number, spread_y : df_number) -> df_particle;

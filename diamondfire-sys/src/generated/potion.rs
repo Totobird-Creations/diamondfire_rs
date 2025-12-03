@@ -1,4 +1,4 @@
-use crate::diamondfire::*;
+use crate::*;
 unsafe extern "C" {
     pub safe fn DF_POTION__Absorption(amplifier : df_number, duration : df_number) -> df_potion;
     pub safe fn DF_POTION__ConduitSPECIALSpace_Power(amplifier : df_number, duration : df_number) -> df_potion;

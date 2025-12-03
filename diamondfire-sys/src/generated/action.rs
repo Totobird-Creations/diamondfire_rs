@@ -1,4 +1,4 @@
-use crate::diamondfire::*;
+use crate::*;
 unsafe extern "C" {
     pub unsafe fn DF_ACTION__callSPECIALSpace_function__dynamic(...);
     pub unsafe fn DF_ACTION__control__StopRepeat(...);
