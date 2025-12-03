@@ -1,0 +1,26 @@
+[package]
+name        = "diamondfire-macros"
+version     = "0.1.0"
+authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
+description = "High-level macros for the Diamondfire block language compiler target"
+
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+
+[lints.rust]
+unused_parens     = "allow"
+internal_features = "allow"
+
+
+[dependencies.proc-macro2]
+version = "1.0"
+
+[dependencies.syn]
+version  = "2.0"
+features = [ "full" ]
+
+[dependencies.quote]
+version = "1.0"

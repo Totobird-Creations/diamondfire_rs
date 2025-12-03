@@ -1,0 +1,11 @@
+[package]
+name        = "diamondfire-linker"
+version     = "0.1.0"
+authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
+description = "Linker and CCAPI integration for the Diamondfire block language compiler target"
+
+edition = "2024"
+
+
+[lints.rust]
+unused_parens = "allow"

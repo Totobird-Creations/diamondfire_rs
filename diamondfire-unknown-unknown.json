@@ -1,0 +1,23 @@
+{
+    "arch"                    : "diamondfire",
+    "binary-format"           : "wasm",
+    "data-layout"             : "e-m:e-p:32:32-p10:8:8-p20:8:8-i64:64-i128:128-n32:64-S128-ni:1:10:20",
+    "dll-prefix"              : "",
+    "dll-suffix"              : ".json",
+    "eh-frame-header"         : false,
+    "emit-debug-gdb-scripts"  : false,
+    "exe-suffix"              : ".json",
+    "linker"                  : "/home/totobird/code/games/df/diamondfire_rs/diamondfire-linker/target/debug/diamondfire-linker",
+    "default-codegen-backend" : "/home/totobird/code/games/df/diamondfire_rs/rustc_codegen_diamondfire/target/debug/librustc_codegen_diamondfire.so",
+    "max-atomic-width"        : 64,
+    "metadata"                : {
+        "description" : "DiamondFire Block Code",
+        "host_tools"  : false,
+        "std"         : false,
+        "tier"        : 3
+    },
+    "panic-strategy"          : "abort",
+    "target-pointer-width"    : 32,
+    "llvm-target"             : "diamondfire-unknown-unknown",
+    "features"                : ""
+}

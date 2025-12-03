@@ -1,0 +1,14 @@
+[package]
+name        = "rustc_codegen_diamondfire"
+version     = "0.1.0"
+authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
+description = "Rust compiler codegen for the DiamondFire block language compiler target"
+
+edition = "2024"
+
+[lib]
+crate-type = [ "cdylib" ]
+
+
+[lints.rust]
+unused_parens = "allow"

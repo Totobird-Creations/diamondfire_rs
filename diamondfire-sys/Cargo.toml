@@ -1,0 +1,29 @@
+[package]
+name        = "diamondfire-sys"
+version     = "0.1.0"
+authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
+description = "Low-level bindings for the Diamondfire block language compiler target"
+
+edition = "2024"
+
+build = "build/main.rs"
+
+[features]
+all_sounds = [ ]
+
+
+[lints.rust]
+unused_parens       = "allow"
+internal_features   = "allow"
+incomplete_features = "allow"
+
+[lints.clippy]
+missing_safety_doc = "allow"
+
+
+[build-dependencies.serde]
+version  = "1.0"
+features = [ "derive" ]
+
+[build-dependencies.serde_json]
+version = "1.0"

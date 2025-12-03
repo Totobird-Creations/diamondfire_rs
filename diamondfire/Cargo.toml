@@ -1,0 +1,19 @@
+[package]
+name        = "diamondfire"
+version     = "0.1.0"
+authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
+description = "High-level interface for the Diamondfire block language compiler target"
+
+edition = "2024"
+
+
+[lints.rust]
+unused_parens     = "allow"
+internal_features = "allow"
+
+
+[dependencies.diamondfire-sys]
+path = "../diamondfire-sys"
+
+[dependencies.diamondfire-macros]
+path = "../diamondfire-macros"
