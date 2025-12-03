@@ -16,3 +16,17 @@ pub mod prelude {
     // pub use super::player::PlayerSel;
     // pub use super::std::prelude::*;
 }
+
+
+
+use diamondfire_sys::DF_ACTION__control__End;
+use core::{
+    hint::unreachable_unchecked,
+    panic::PanicInfo
+};
+
+#[panic_handler]
+fn handle_panics(info : &PanicInfo) -> ! { unsafe {
+    DF_ACTION__control__End();
+    unreachable_unchecked();
+} }

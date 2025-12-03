@@ -1,6 +1,11 @@
 #[cfg(feature = "all_sounds")]
-pub mod sound;
+mod sound;
+#[cfg(feature = "all_sounds")]
+pub use sound::*;
 
-pub mod particle;
-pub mod potion;
-pub mod action;
+mod particle;
+pub use particle::*;
+mod potion;
+pub use potion::*;
+mod action;
+pub use action::*;

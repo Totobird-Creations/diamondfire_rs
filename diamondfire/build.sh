@@ -5,4 +5,4 @@ printf "\n\x1b[32mCompiling Codegen Library...\x1b[0m\n"
 printf "\n\x1b[32mCompiling Linker Executable...\x1b[0m\n"
 (cd ../diamondfire-linker; cargo build || exit 1)
 printf "\n\x1b[32mCompiling Example Library...\x1b[0m\n"
-cargo build --example=transform --target=../diamondfire-unknown-unknown.json || exit 1
+cargo build -Zbuild-std --target=../diamondfire-unknown-unknown.json --example=transform || exit 1
