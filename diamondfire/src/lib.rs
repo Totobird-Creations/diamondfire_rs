@@ -1,6 +1,5 @@
-#![feature(no_core)]
+#![feature(core_intrinsics)]
 #![no_std]
-#![no_core]
 
 #[doc(hidden)]
 extern crate self as __private_diamondfire;
