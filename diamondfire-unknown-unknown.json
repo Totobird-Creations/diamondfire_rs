@@ -1,4 +1,6 @@
 {
+    "llvm-target"             : "diamondfire-unknown-unknown",
+    "os"                      : "diamondfire",
     "arch"                    : "wasm32",
     "is-like-wasm"            : true,
     "linker-flavor"           : "wasm-lld",
@@ -20,6 +22,5 @@
         "tier"        : 3
     },
     "panic-strategy"          : "abort",
-    "target-pointer-width"    : 32,
-    "llvm-target"             : "diamondfire-unknown-unknown"
+    "target-pointer-width"    : 32
 }

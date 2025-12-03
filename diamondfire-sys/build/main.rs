@@ -3,6 +3,7 @@
 
 use std::{
     collections::HashSet,
+    env,
     fs::{ self, File },
     io::Write as _
 };
@@ -16,6 +17,8 @@ pub use actiondump::ActionDump;
 
 
 pub fn main() {
+    println!("cargo:rustc-env=TARGET={}", env::var("TARGET").unwrap());
+
     fs::create_dir_all("src/generated").unwrap();
 
     let ad = read_json::<_, ActionDump>(File::open("../actiondump.json").unwrap()).unwrap();
