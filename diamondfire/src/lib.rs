@@ -26,7 +26,7 @@ use core::{
 };
 
 #[panic_handler]
-fn handle_panics(info : &PanicInfo) -> ! { unsafe {
+fn handle_panics(_info : &PanicInfo) -> ! { unsafe {
     DF_ACTION__control__End();
     unreachable_unchecked();
 } }
