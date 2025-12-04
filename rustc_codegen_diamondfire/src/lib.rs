@@ -75,9 +75,9 @@ impl CodegenBackend for DiamondfireCodegen {
 
     fn codegen_crate<'tcx>(&self, tcx : TyCtxt<'tcx>) -> Box<dyn Any> {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
+        let crate_name = crate_info.local_crate_name.to_string();
 
         let module_items = tcx.hir_crate_items(());
-        println!("\n{:?} {:?}", crate_info.crate_types, tcx.crate_name(rustc_hir::def_id::LOCAL_CRATE));
         for item_id in module_items.free_items() {
             let item = tcx.hir_item(item_id);
             match (item.kind) {
@@ -97,18 +97,6 @@ impl CodegenBackend for DiamondfireCodegen {
                     let instance = Instance::mono(tcx, def_id);
                     let mir      = tcx.optimized_mir(def_id);
                     lower1::mir_to_dfmir(tcx, instance, mir);
-                    // println!("{:?}", tcx.body_codegen_attrs(def_id));
-                    // let instance = Instance::mono(tcx, def_id);
-                    // let mir      = tcx.optimized_mir(instance.def_id());
-                    // for (i, block,) in mir.basic_blocks.iter().enumerate() {
-                    //     println!("  {}:", i);
-                    //     for stmt in &block.statements {
-                    //         println!("    {:?}", stmt);
-                    //     }
-                    //     if let Some(terminator) = &block.terminator {
-                    //         println!("    {:?}", terminator.kind);
-                    //     }
-                    // }
                 },
                 ItemKind::Macro(_, _, _,) => { },
                 ItemKind::Mod(_, _,) => { },
@@ -141,6 +129,8 @@ impl CodegenBackend for DiamondfireCodegen {
         let ongoing_codegen = ongoing_codegen.downcast::<CrateToJoin>().unwrap();
 
         // TODO: Write data used by the linker.
+        println!("\n{:?}", ongoing_codegen.crate_info.crate_types);
+        println!("{}", ongoing_codegen.crate_info.local_crate_name);
         println!("{:?}\n", outputs.with_extension("dfrs-cg"));
         let mut f = File::create(outputs.with_extension("dfrs-cg")).unwrap();
 
