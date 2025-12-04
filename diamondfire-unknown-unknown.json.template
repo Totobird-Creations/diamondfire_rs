@@ -29,6 +29,6 @@
     "target-pointer-width"    : 32,
     "panic-strategy"          : "abort",
 
-    "default-codegen-backend" : "/home/totobird/code/games/df/diamondfire_rs/rustc_codegen_diamondfire/target/debug/librustc_codegen_diamondfire.so",
-    "linker"                  : "/home/totobird/code/games/df/diamondfire_rs/diamondfire-linker/target/debug/diamondfire-linker"
+    "default-codegen-backend" : "{DIAMONDFIRERS_ROOT}/rustc_codegen_diamondfire/target/debug/librustc_codegen_diamondfire.so",
+    "linker"                  : "{DIAMONDFIRERS_ROOT}/linker_diamondfire/target/debug/linker_diamondfire"
 }
