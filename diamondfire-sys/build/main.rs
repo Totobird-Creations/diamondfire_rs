@@ -13,10 +13,10 @@ mod ident;
 use ident::identify;
 
 mod actiondump;
-pub use actiondump::ActionDump;
+use actiondump::ActionDump;
 
 
-pub fn main() {
+fn main() {
     println!("cargo:rustc-env=TARGET={}", env::var("TARGET").unwrap());
 
     fs::create_dir_all("src/generated").unwrap();

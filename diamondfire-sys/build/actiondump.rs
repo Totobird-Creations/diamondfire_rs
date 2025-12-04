@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+
+
 use serde::{
     Deserialize as Deser,
     de::IgnoredAny

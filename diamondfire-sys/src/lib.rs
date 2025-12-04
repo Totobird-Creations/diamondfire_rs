@@ -10,8 +10,10 @@ mod __target_check {
 }
 
 
+#[forbid(missing_docs)]
 mod ty;
 pub use ty::*;
 
+#[forbid(missing_docs)]
 mod generated;
 pub use generated::*;
