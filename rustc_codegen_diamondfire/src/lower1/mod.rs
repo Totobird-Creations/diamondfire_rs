@@ -16,7 +16,10 @@ use rustc_middle::{
         TyCtxt
     }
 };
-use rustc_span::def_id::DefId;
+use rustc_hir::def_id::{
+    DefId,
+    LOCAL_CRATE
+};
 
 
 pub fn mangle_name(tcx : TyCtxt<'_>, def_id : DefId) -> String {
@@ -28,7 +31,7 @@ pub fn mangle_name(tcx : TyCtxt<'_>, def_id : DefId) -> String {
     } else {
         let mut hasher = DefaultHasher::new();
         def_id.hash(&mut hasher);
-        format!("{}__{:0>16x}", tcx.item_name(def_id), hasher.finish())
+        format!("{}__{}__{:0>16x}", tcx.crate_name(LOCAL_CRATE), tcx.item_name(def_id), hasher.finish())
     }
 }
 
@@ -41,7 +44,7 @@ pub fn mir_to_dfmir<'tcx>(
     let name = mangle_name(tcx, instance.def_id());
     if (name == "rust_begin_unwind") { return; }
 
-    // println!("  {}:", name);
+    println!("  {}:", name);
     for (i, bb,) in mir.basic_blocks.iter().enumerate() {
         // println!("    bb{}:", i);
         bb_to_dfmir(tcx, instance, bb);
