@@ -1,5 +1,5 @@
 [package]
-name        = "diamondfire-linker"
+name        = "linker_diamondfire"
 version     = "0.1.0"
 authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
 description = "Linker and CCAPI integration for the Diamondfire block language compiler target"
