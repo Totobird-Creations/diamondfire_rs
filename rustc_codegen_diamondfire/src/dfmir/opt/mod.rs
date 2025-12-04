@@ -333,4 +333,4 @@
 // TODO: Replace UUID-only EntityName with EntityUUID
 
 // CONTROL
-// TODO: Remove wait 0 unless it is the first wait in an event response
+// TODO: Remove wait 0 (unless explicitely placed using yield_now)

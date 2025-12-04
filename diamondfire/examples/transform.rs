@@ -2,7 +2,7 @@
 #![no_main]
 
 
-use diamondfire::vec3::Vec3;
+use diamondfire::Vec3;
 
 
 #[derive(Clone, Copy)]
@@ -20,7 +20,6 @@ pub struct Quat {
     pub w : f64
 }
 // impl Quat {
-    // #[unsafe(no_mangle)]
     // pub fn from_axis_angle(axis : Vec3, angle : f64) -> Quat {
     //     let ha = angle / 2.0;
     //     let s  = ha.sin();

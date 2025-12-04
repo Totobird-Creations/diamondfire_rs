@@ -7,24 +7,26 @@ extern crate self as __private_diamondfire;
 pub use diamondfire_macros as __private_diamondfire_macros;
 
 
-pub mod vec3;
-// pub mod player;
+// TODO: text
+
+// TODO: location
+
+mod vec3;
+pub use vec3::*;
+
+// TODO: sound
+
+// TODO: particle
+
+// TODO: potion
+
+// TODO: world
+
+
+pub mod std;
 
 
 pub mod prelude {
     pub use super::vec3::Vec3;
-    // pub use super::player::PlayerSel;
-    // pub use super::std::prelude::*;
+    pub use super::std::{ self, prelude::* };
 }
-
-
-
-use core::{
-    hint::unreachable_unchecked,
-    panic::PanicInfo
-};
-
-#[panic_handler]
-fn handle_panics(_info : &PanicInfo) -> ! { unsafe {
-    unreachable_unchecked();
-} }

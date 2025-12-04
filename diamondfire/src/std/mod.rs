@@ -4,20 +4,27 @@ use core::{
 };
 
 
-pub mod string;
-pub mod vec;
+// TODO: collections::HashMap
+// TODO: collections::LargeHashMap
+// TODO: string::String
+// TODO: string::ToString
+// TODO: sync::Arc
+// TODO: sync::Mutex
+// TODO: sync::RwLock
+// TODO: thread::sleep
+// TODO: thread::spawn
+// TODO: thread::yield_now
+// TODO: time::Instant
+// TODO: time::UNIX_EPOCH
+// TODO: vec::Vec
+// TODO: vec::LargeVec
 
 
 pub mod prelude {
-    pub use super::string::{
-        String,
-        ToString
-    };
-    pub use super::vec::Vec;
 }
 
 
 #[panic_handler]
-fn handle_panic(_info : &PanicInfo) -> ! {
+fn handle_panics(_info : &PanicInfo) -> ! {
     abort();
 }
