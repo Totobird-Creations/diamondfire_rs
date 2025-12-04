@@ -24,6 +24,24 @@ pub use vec3::*;
 
 // TODO: world
 
+// TODO: extras::Vec2
+// TODO: extras::Vec4
+// TODO: extras::Dir2
+// TODO: extras::Dir3
+// TODO: extras::Dir4
+// TODO: extras::IVec2
+// TODO: extras::IVec3
+// TODO: extras::IVec4
+// TODO: extras::BVec2
+// TODO: extras::BVec3
+// TODO: extras::BVec4
+// TODO: extras::Mat2
+// TODO: extras::Mat3
+// TODO: extras::Mat4
+// TODO: extras::Quat
+// TODO: extras::LargeVec
+// TODO: extras::LargeHashMap
+
 
 pub mod std;
 
