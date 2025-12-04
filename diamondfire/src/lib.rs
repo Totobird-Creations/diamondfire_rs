@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 #![feature(core_intrinsics)]
 #![no_std]
 
