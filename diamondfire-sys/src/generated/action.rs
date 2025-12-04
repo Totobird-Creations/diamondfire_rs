@@ -2,11 +2,11 @@ use crate::*;
 unsafe extern "C" {
     pub unsafe fn DF_ACTION__callSPECIALSpace_function__dynamic(...);
     pub unsafe fn DF_ACTION__control__StopRepeat(...);
-    pub unsafe fn DF_ACTION__control__Return(...);
+    pub unsafe fn DF_ACTION__control__Return(...) -> !;
     pub unsafe fn DF_ACTION__control__PrintDebug__Permission__TextSPECIALSpace_ValueSPECIALSpace_Merging__Highlighting__Sound__MessageSPECIALSpace_Style(r#permission : df_string, r#text_value_merging : df_string, r#highlighting : df_string, r#sound : df_string, r#message_style : df_string, ...);
-    pub unsafe fn DF_ACTION__control__ReturnNTimes(...);
+    pub unsafe fn DF_ACTION__control__ReturnNTimes(...) -> !;
     pub unsafe fn DF_ACTION__control__Skip(...);
-    pub unsafe fn DF_ACTION__control__End(...);
+    pub unsafe fn DF_ACTION__control__End(...) -> !;
     pub unsafe fn DF_ACTION__control__Wait__TimeSPECIALSpace_Unit(r#time_unit : df_string, ...);
     pub unsafe fn DF_ACTION__setSPECIALSpace_variable__String__TextSPECIALSpace_ValueSPECIALSpace_Merging(r#text_value_merging : df_string, ...);
     pub unsafe fn DF_ACTION__setSPECIALSpace_variable__AllRegexGroups(...);

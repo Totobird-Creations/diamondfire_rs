@@ -95,7 +95,11 @@ pub fn main() {
             for tag in &action.tags {
                 write!(f, "r#{} : df_string, ", tag.name.to_lowercase().replace(|ch| ! ident::VALID_CHARS.contains(&ch), "_")).unwrap();
             }
-            writeln!(f, "...);").unwrap();
+            write!(f, "...)").unwrap();
+            if (action.codeblock == "CONTROL" && (action.name == "Return" || action.name == "ReturnNTimes" || action.name == "End")) {
+                write!(f, " -> !").unwrap();
+            }
+            writeln!(f, ";").unwrap();
         }
         writeln!(f, "}}").unwrap();
     }
