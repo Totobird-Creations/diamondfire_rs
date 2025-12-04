@@ -14,8 +14,11 @@ rank_emperor  = [ "rank_noble"    ]
 rank_mythic   = [ "rank_emperor"  ]
 rank_overlord = [ "rank_mythic"   ]
 rank_dev      = [ "rank_overlord" ]
-
 all_sounds = [ ]
+
+[package.metadata.docs.rs]
+rustc-args   = ["--cfg", "diamondfiresys_docsrs"]
+rustdoc-args = ["--cfg", "diamondfiresys_docsrs"]
 
 
 [lints.rust]
@@ -24,7 +27,7 @@ internal_features   = "allow"
 incomplete_features = "allow"
 
 [lints.clippy]
-missing_safety_doc = "allow"
+empty_doc_comments = "allow"
 
 
 [build-dependencies.serde]

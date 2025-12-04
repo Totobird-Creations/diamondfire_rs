@@ -1,13 +1,13 @@
+#![allow(unexpected_cfgs)]
+
 #![feature(core_intrinsics)]
 #![cfg_attr(doc, feature(doc_cfg))]
 #![cfg_attr(doc, doc(cfg(target_os = "diamondfire")))]
 #![no_std]
 
-#[allow(unexpected_cfgs)]
-mod __target_check {
-    #[cfg(not(target_os = "diamondfire"))]
-    compile_error!(concat!("Unsupported compiler target `", env!("TARGET"), "` for diamondfire-sys. Please use `diamondfire-unknown-unknown`"));
-}
+
+#[cfg(all(not(diamondfiresys_docsrs), not(doc), not(rust_analyzer), not(target_os = "diamondfire")))]
+compile_error!(concat!("`diamondfire-sys` does not support the `", env!("TARGET"), "` target. Please use `diamondfire-unknown-unknown`"));
 
 
 #[forbid(missing_docs)]

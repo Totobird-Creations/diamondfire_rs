@@ -5,4 +5,4 @@ printf "\n\x1b[32mCompiling Codegen Library...\x1b[0m\n"
 printf "\n\x1b[32mCompiling Linker Executable...\x1b[0m\n"
 (cd ../diamondfire-linker; cargo build || exit 1)
 printf "\n\x1b[32mCompiling Example Library...\x1b[0m\n"
-cargo doc -Zbuild-std --target=../diamondfire-unknown-unknown.json || exit 1
+RUSTFLAGS="--cfg diamondfiresys_docsrs" cargo doc || exit 1
