@@ -6,8 +6,14 @@
 #![no_std]
 
 
-#[cfg(all(not(diamondfiresys_docsrs), not(doc), not(rust_analyzer), not(target_os = "diamondfire")))]
-compile_error!(concat!("`diamondfire-sys` does not support the `", env!("TARGET"), "` target. Please use `diamondfire-unknown-unknown`"));
+#[cfg(all(doc, not(diamondfire_doc)))]
+compile_error!(concat!("`cargo doc` for diamondfire-sys must be run with `RUSTFLAGS=\"--cfg diamondfire_doc\" RUSTDOCFLAGS=\"--cfg diamondfire_doc\"`"));
+
+#[cfg(all(not(diamondfire_doc), not(doc), not(rust_analyzer), not(target_os = "diamondfire")))]
+compile_error!(concat!("diamondfire-sys does not support the `", env!("TARGET"), "` target. use `diamondfire-unknown-unknown`"));
+
+#[cfg(all(diamondfire_doc, target_os = "diamondfire"))]
+compile_error!("diamondfire-sys docs should not be compiled for `diamondfire-unknown-unknown`");
 
 
 #[forbid(missing_docs)]

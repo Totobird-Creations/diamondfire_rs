@@ -17,8 +17,8 @@ rank_dev      = [ "rank_overlord" ]
 all_sounds = [ ]
 
 [package.metadata.docs.rs]
-rustc-args   = ["--cfg", "diamondfiresys_docsrs"]
-rustdoc-args = ["--cfg", "diamondfiresys_docsrs"]
+rustc-args   = ["--cfg", "diamondfire_doc"]
+rustdoc-args = ["--cfg", "diamondfire_doc"]
 
 
 [lints.rust]
