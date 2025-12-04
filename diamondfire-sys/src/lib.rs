@@ -1,5 +1,6 @@
 #![feature(core_intrinsics)]
 #![cfg_attr(doc, feature(doc_cfg))]
+#![cfg_attr(doc, doc(cfg(target_os = "diamondfire")))]
 #![no_std]
 
 #[allow(unexpected_cfgs)]
