@@ -5,6 +5,7 @@ extern crate rustc_codegen_ssa;
 extern crate rustc_codegen_llvm;
 extern crate rustc_data_structures;
 extern crate rustc_driver;
+extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_metadata;
 extern crate rustc_middle;
@@ -49,6 +50,8 @@ use rustc_session::{
 mod cfg;
 mod dfmir;
 
+mod lower1;
+
 
 struct CrateToJoin {
     crate_info : CrateInfo
@@ -66,10 +69,9 @@ impl CodegenBackend for DiamondfireCodegen {
 
     fn codegen_crate<'tcx>(&self, tcx : TyCtxt<'tcx>) -> Box<dyn Any> {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
-        println!("{:?}", crate_info.crate_types);
 
         let module_items = tcx.hir_crate_items(());
-        println!("{:?}", tcx.crate_name(rustc_hir::def_id::LOCAL_CRATE));
+        println!("{:?} {:?}", crate_info.crate_types, tcx.crate_name(rustc_hir::def_id::LOCAL_CRATE));
         for item_id in module_items.free_items() {
             let item = tcx.hir_item(item_id);
             match (item.kind) {
@@ -79,10 +81,16 @@ impl CodegenBackend for DiamondfireCodegen {
                     // TODO
                 },
                 ItemKind::Const(_, _, _, _,) => { },
-                ItemKind::Fn { ident, .. } => { // TODO
-                    // println!("\n{}", ident);
-                    // let def_id   = item_id.owner_id.to_def_id();
-                    // let generics = tcx.generics_of(def_id);
+                ItemKind::Fn { .. } => {
+                    let def_id   = item_id.owner_id.to_def_id();
+                    let generics = tcx.generics_of(def_id);
+                    if (! generics.own_params.is_empty()) {
+                        // Skipped direct lowering of generic function.
+                        continue;
+                    }
+                    let instance = Instance::mono(tcx, def_id);
+                    let mir      = tcx.optimized_mir(def_id);
+                    lower1::mir_to_dfmir(tcx, instance, mir);
                     // println!("{:?}", tcx.body_codegen_attrs(def_id));
                     // let instance = Instance::mono(tcx, def_id);
                     // let mir      = tcx.optimized_mir(instance.def_id());
@@ -107,10 +115,10 @@ impl CodegenBackend for DiamondfireCodegen {
                 ItemKind::Struct(_, _, _,) => { },
                 ItemKind::Union(_, _, _,) => { },
                 ItemKind::Trait(_, _, _, _, _, _, _,) => { },
-                ItemKind::TraitAlias(_, _, _, _,) => {
+                ItemKind::TraitAlias(_, _, _, _,) => { },
+                ItemKind::Impl(_,) => {
                     // TODO
-                },
-                ItemKind::Impl(_,) => { }
+                }
             }
         }
         Box::new(CrateToJoin {
