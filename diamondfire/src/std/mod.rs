@@ -8,7 +8,6 @@ use core::{
 
 
 // TODO: collections::HashMap
-// TODO: collections::LargeHashMap
 // TODO: string::String
 // TODO: string::ToString
 // TODO: sync::Arc
@@ -20,7 +19,6 @@ use core::{
 // TODO: time::Instant
 // TODO: time::UNIX_EPOCH
 // TODO: vec::Vec
-// TODO: vec::LargeVec
 
 
 /// Common types and functions.

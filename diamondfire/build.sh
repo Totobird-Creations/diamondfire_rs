@@ -5,8 +5,8 @@ cd $(dirname ${0})
 # Remove files from previous compilations.
 # This ensures that all artifacts are regenerated.
 # This is unneeded unless rustc_codegen_diamondfire has been modified.
-rm -rd target
 rm rustc-ice-*.txt
+# rm -rd target
 rm ../diamondfire-macros/rustc-ice-*.txt
 rm ../diamondfire-sys/rustc-ice-*.txt
 

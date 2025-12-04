@@ -41,6 +41,8 @@ pub use vec3::*;
 // TODO: extras::Quat
 // TODO: extras::LargeVec
 // TODO: extras::LargeHashMap
+// TODO: extras::Combined // Player or entity
+// TODO: extras::CombinedSel
 
 
 pub mod std;
