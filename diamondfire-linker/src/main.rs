@@ -1,3 +1,10 @@
+use std::env;
+
+
 fn main() {
-    // TODO
+    eprintln!("TODO linker:");
+    for arg in env::args() {
+        eprintln!("  {}", arg);
+    }
+    todo!()
 }
