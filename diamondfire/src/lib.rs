@@ -46,7 +46,8 @@ pub use vec3::*;
 pub mod std;
 
 
+/// Common types and functions.
 pub mod prelude {
     pub use super::vec3::Vec3;
-    pub use super::std::{ self, prelude::* };
+    pub use super::std;
 }

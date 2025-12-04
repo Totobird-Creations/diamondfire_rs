@@ -1,3 +1,6 @@
+//! Partial reimplementation of `std` for DiamondFire.
+
+
 use core::{
     intrinsics::abort,
     panic::PanicInfo
@@ -20,6 +23,7 @@ use core::{
 // TODO: vec::LargeVec
 
 
+/// Common types and functions.
 pub mod prelude {
 }
 

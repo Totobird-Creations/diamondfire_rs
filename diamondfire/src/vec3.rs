@@ -7,6 +7,7 @@ use core::{
 };
 
 
+/// A 3-dimensional vector.
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct Vec3 {
@@ -16,6 +17,8 @@ pub struct Vec3 {
 
 impl Vec3 {
 
+    /// Creates a new vector.
+    #[must_use]
     #[inline(always)]
     pub fn new(x : f64, y : f64, z : f64) -> Self { unsafe {
         let mut out = MaybeUninit::uninit();
@@ -28,11 +31,20 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Creates a vector with all elements set to `v`.
+    #[must_use]
+    #[inline(always)]
+    pub fn splat(v : f64) -> Self {
+        Self::new(v, v, v)
+    }
+
 }
 
 
 impl Vec3 {
 
+    /// Returns the `x` element of this vector.
+    #[must_use]
     #[inline(always)]
     pub fn x(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
@@ -44,6 +56,8 @@ impl Vec3 {
         out.assume_init().into_f64()
     } }
 
+    /// Returns the `y` element of this vector.
+    #[must_use]
     #[inline(always)]
     pub fn y(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
@@ -55,6 +69,8 @@ impl Vec3 {
         out.assume_init().into_f64()
     } }
 
+    /// Returns the `z` element of this vector.
+    #[must_use]
     #[inline(always)]
     pub fn z(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
@@ -71,6 +87,8 @@ impl Vec3 {
 
 impl Vec3 {
 
+    /// Creates a vector by replacing the `x` element in `self`.
+    #[must_use]
     #[inline(always)]
     pub fn with_x(self, x : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -83,6 +101,8 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Creates a vector by replacing the `y` element in `self`.
+    #[must_use]
     #[inline(always)]
     pub fn with_y(self, y : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -95,6 +115,8 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Creates a vector by replacing the `z` element in `self`.
+    #[must_use]
     #[inline(always)]
     pub fn with_z(self, z : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -112,6 +134,8 @@ impl Vec3 {
 
 impl Vec3 {
 
+    /// Computes the length of `self`.
+    #[must_use]
     #[inline(always)]
     pub fn length(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
@@ -123,6 +147,10 @@ impl Vec3 {
         out.assume_init().into_f64()
     } }
 
+    /// Computes the squared length of `self`.
+    ///
+    /// This is faster than `length()` as it avoids a square root operation.
+    #[must_use]
     #[inline(always)]
     pub fn length_squared(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
@@ -139,6 +167,8 @@ impl Vec3 {
 
 impl Vec3 {
 
+    /// Returns `self` with length set to `len`.
+    #[must_use]
     #[inline(always)]
     pub fn with_length(self, len : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -217,6 +247,8 @@ impl Div<f64> for Vec3 {
 
 impl Vec3 {
 
+    /// Aligns `self` to the nearest cardinal axis.
+    #[must_use]
     #[inline(always)]
     pub fn align(self) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -232,6 +264,8 @@ impl Vec3 {
 
 impl Vec3 {
 
+    /// Rotates `self` around the X axis by `angle` radians.
+    #[must_use]
     #[inline(always)]
     pub fn rotate_x(self, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -245,6 +279,8 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Rotates `self` around the Y axis by `angle` radians.
+    #[must_use]
     #[inline(always)]
     pub fn rotate_y(self, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -258,6 +294,8 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Rotates `self` around the Z axis by `angle` radians.
+    #[must_use]
     #[inline(always)]
     pub fn rotate_z(self, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -271,6 +309,8 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Rotates `self` around the `axis` by `angle` radians.
+    #[must_use]
     #[inline(always)]
     pub fn rotate(self, axis : Vec3, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -284,13 +324,15 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Reflects `self` across the `normal` plane.
+    #[must_use]
     #[inline(always)]
-    pub fn reflect(self, axis : Vec3) -> Self { unsafe {
+    pub fn reflect(self, normal : Vec3) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
         DF_ACTION__setSPECIALSpace_variable__ReflectVector(
             out.as_mut_ptr(),
             self._opaque,
-            axis._opaque
+            normal._opaque
         );
         Self { _opaque : out.assume_init() }
     } }
@@ -300,6 +342,8 @@ impl Vec3 {
 
 impl Vec3 {
 
+    /// Calculates the cross product of `self` and `rhs`.
+    #[must_use]
     #[inline(always)]
     pub fn cross(self, rhs : Vec3) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
@@ -311,6 +355,8 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
+    /// Calculates the dot product of `self` and `rhs`.
+    #[must_use]
     #[inline(always)]
     pub fn dot(self, rhs : Vec3) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
@@ -325,24 +371,33 @@ impl Vec3 {
 }
 
 
+/// A cardinal direction.
 #[string_enum]
 pub enum Direction {
+    /// `-Z`
     #[string_enum_rename = "north"]
     North,
+    /// `+X`
     #[string_enum_rename = "east"]
     East,
+    /// `+Z`
     #[string_enum_rename = "south"]
     South,
+    /// `-X`
     #[string_enum_rename = "west"]
     West,
+    /// `+Y`
     #[string_enum_rename = "up"]
     Up,
+    /// `-Y`
     #[string_enum_rename = "down"]
     Down
 }
 
 impl Vec3 {
 
+    /// Gets the nearest cardinal direction of `self`.
+    #[must_use]
     #[inline(always)]
     pub fn direction(self) -> Direction { unsafe {
         let mut out = MaybeUninit::<df_string>::uninit();
