@@ -407,7 +407,7 @@ unsafe extern "C" {
     pub unsafe fn DF_ACTION__entitySPECIALSpace_action__TDispBackground(...);
     pub unsafe fn DF_ACTION__entitySPECIALSpace_action__DisplayCullingSize(...);
     pub unsafe fn DF_ACTION__entitySPECIALSpace_action__HideName(...);
-    #[deprecated]
+    #[deprecated = "This action is planned to be removed in a future update. Please use Entity Action: Shear (Appearance) instead."]
     pub unsafe fn DF_ACTION__entitySPECIALSpace_action__SetSheepSheared__Sheared(r#sheared : df_string, ...);
     pub unsafe fn DF_ACTION__entitySPECIALSpace_action__SetAxolotlColor__AxolotlSPECIALSpace_Color(r#axolotl_color : df_string, ...);
     pub unsafe fn DF_ACTION__entitySPECIALSpace_action__GetAllEntityTags(...);
@@ -601,7 +601,7 @@ unsafe extern "C" {
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__ParticleCuboidA__FillSPECIALSpace_Type(r#fill_type : df_string, ...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__PlaySound__SoundSPECIALSpace_Source(r#sound_source : df_string, ...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__SetCompass(...);
-    #[deprecated]
+    #[deprecated = "Use 'Set Variable: Set to Random Value' instead. This will likely be removed in 5.4."]
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__RngTeleport__KeepSPECIALSpace_CurrentSPECIALSpace_Rotation(r#keep_current_rotation : df_string, ...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__MobDisguise(...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__EnableBlocks(...);
@@ -618,7 +618,7 @@ unsafe extern "C" {
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__SetEntityHidden__Hidden__IgnoreSPECIALSpace_Formatting(r#hidden : df_string, r#ignore_formatting : df_string, ...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__SetSidebar__Sidebar(r#sidebar : df_string, ...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__AllowDrops(...);
-    #[deprecated]
+    #[deprecated = "Block highlighters will be removed in Minecraft client version 1.21.9."]
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__DisplayHighlighter(...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__Vibration(...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__SetSlot(...);
@@ -714,7 +714,7 @@ unsafe extern "C" {
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__RollbackBlocks(...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__NoDeathDrops(...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__WalkSpeed(...);
-    #[deprecated]
+    #[deprecated = "Block highlighters will be removed in Minecraft client version 1.21.9."]
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__ClearHighlighters(...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__SetCollidable__Collision(r#collision : df_string, ...);
     pub unsafe fn DF_ACTION__playerSPECIALSpace_action__LaunchFwd__AddSPECIALSpace_toSPECIALSpace_CurrentSPECIALSpace_Velocity__LaunchSPECIALSpace_Axis(r#add_to_current_velocity : df_string, r#launch_axis : df_string, ...);

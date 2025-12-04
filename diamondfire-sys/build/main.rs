@@ -32,7 +32,7 @@ pub fn main() {
             let name = identify(&sound.icon.name);
             if (taken_names.contains(&name)) { continue; }
             if (! sound.icon.deprecation.is_empty()) {
-                writeln!(f, "    #[deprecated]").unwrap();
+                writeln!(f, "    #[deprecated = {:?}]", sound.icon.deprecation.join(" ")).unwrap();
             }
             writeln!(f, "    pub safe fn DF_SOUND__{}(pitch : df_number, volume : df_number) -> df_sound;", name).unwrap();
             for variant in sound.variants {
@@ -49,7 +49,7 @@ pub fn main() {
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for mut particle in ad.particles {
             if (! particle.icon.deprecation.is_empty()) {
-                writeln!(f, "    #[deprecated]").unwrap();
+                writeln!(f, "    #[deprecated = {:?}]", particle.icon.deprecation.join(" ")).unwrap();
             }
             write!(f, "    pub safe fn DF_PARTICLE__{}__", identify(&particle.particle.to_lowercase())).unwrap();
             particle.fields.sort();
@@ -72,7 +72,7 @@ pub fn main() {
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for potion in ad.potions {
             if (! potion.icon.deprecation.is_empty()) {
-                writeln!(f, "    #[deprecated]").unwrap();
+                writeln!(f, "    #[deprecated = {:?}]", potion.icon.deprecation.join(" ")).unwrap();
             }
             writeln!(f, "    pub safe fn DF_POTION__{}(amplifier : df_number, duration : df_number) -> df_potion;", identify(&potion.icon.name)).unwrap();
         }
@@ -85,7 +85,7 @@ pub fn main() {
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
         for action in ad.actions {
             if (! action.icon.deprecation.is_empty()) {
-                writeln!(f, "    #[deprecated]").unwrap();
+                writeln!(f, "    #[deprecated = {:?}]", action.icon.deprecation.join(" ")).unwrap();
             }
             write!(f, "    pub unsafe fn DF_ACTION__{}__{}", identify(&action.codeblock.to_lowercase()), identify(&action.name)).unwrap();
             for tag in &action.tags {

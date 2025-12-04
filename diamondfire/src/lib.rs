@@ -19,7 +19,6 @@ pub mod prelude {
 
 
 
-use diamondfire_sys::DF_ACTION__control__End;
 use core::{
     hint::unreachable_unchecked,
     panic::PanicInfo
@@ -27,6 +26,5 @@ use core::{
 
 #[panic_handler]
 fn handle_panics(_info : &PanicInfo) -> ! { unsafe {
-    DF_ACTION__control__End();
     unreachable_unchecked();
 } }
