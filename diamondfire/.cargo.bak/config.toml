@@ -1,6 +1,0 @@
-[build]
-rustflags = [
-    "-Zcodegen-backend=/home/totobird/code/games/df/diamondfire_rs/rustc_codegen_diamondfire/target/debug/librustc_codegen_diamondfire.so",
-    "-Clinker=/home/totobird/code/games/df/diamondfire_rs/diamondfire-linker/target/debug/diamondfire-linker",
-    "-Cpanic=abort"
-]

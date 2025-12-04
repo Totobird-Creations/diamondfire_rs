@@ -14,7 +14,10 @@ extern crate rustc_session;
 extern crate rustc_span;
 
 use core::any::Any;
-use std::path::Path;
+use std::{
+    fs::File,
+    path::Path
+};
 use rustc_codegen_ssa::{
     back::{
         archive::{
@@ -42,7 +45,10 @@ use rustc_query_system::dep_graph::{
     WorkProduct
 };
 use rustc_session::{
-    config::OutputFilenames,
+    config::{
+        OutputFilenames,
+        OutputType
+    },
     Session
 };
 
@@ -71,7 +77,7 @@ impl CodegenBackend for DiamondfireCodegen {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
 
         let module_items = tcx.hir_crate_items(());
-        println!("{:?} {:?}", crate_info.crate_types, tcx.crate_name(rustc_hir::def_id::LOCAL_CRATE));
+        println!("\n{:?} {:?}", crate_info.crate_types, tcx.crate_name(rustc_hir::def_id::LOCAL_CRATE));
         for item_id in module_items.free_items() {
             let item = tcx.hir_item(item_id);
             match (item.kind) {
@@ -133,6 +139,11 @@ impl CodegenBackend for DiamondfireCodegen {
         outputs         : &OutputFilenames
     ) -> (CodegenResults, FxIndexMap<WorkProductId, WorkProduct>,) {
         let ongoing_codegen = ongoing_codegen.downcast::<CrateToJoin>().unwrap();
+
+        // TODO: Write data used by the linker.
+        println!("{:?}\n", outputs.with_extension("dfrs-cg"));
+        let mut f = File::create(outputs.with_extension("dfrs-cg")).unwrap();
+
         (CodegenResults {
             modules          : Vec::new(),
             allocator_module : None,
@@ -154,7 +165,7 @@ impl CodegenBackend for DiamondfireCodegen {
             metadata,
             outputs,
             "diamondfire"
-        )
+        );
     }
 
 

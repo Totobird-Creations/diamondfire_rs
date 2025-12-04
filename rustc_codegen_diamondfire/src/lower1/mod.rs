@@ -41,9 +41,9 @@ pub fn mir_to_dfmir<'tcx>(
     let name = mangle_name(tcx, instance.def_id());
     if (name == "rust_begin_unwind") { return; }
 
-    println!("  {}:", name);
+    // println!("  {}:", name);
     for (i, bb,) in mir.basic_blocks.iter().enumerate() {
-        println!("    bb{}:", i);
+        // println!("    bb{}:", i);
         bb_to_dfmir(tcx, instance, bb);
     }
 }
