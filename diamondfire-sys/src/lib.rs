@@ -1,4 +1,5 @@
 #![feature(core_intrinsics)]
+#![cfg_attr(doc, feature(doc_cfg))]
 #![no_std]
 
 #[allow(unexpected_cfgs)]

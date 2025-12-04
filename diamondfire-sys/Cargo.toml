@@ -9,6 +9,12 @@ edition = "2024"
 build = "build/main.rs"
 
 [features]
+rank_noble    = [ ]
+rank_emperor  = [ "rank_noble"    ]
+rank_mythic   = [ "rank_emperor"  ]
+rank_overlord = [ "rank_mythic"   ]
+rank_dev      = [ "rank_overlord" ]
+
 all_sounds = [ ]
 
 

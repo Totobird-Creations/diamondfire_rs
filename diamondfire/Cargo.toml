@@ -6,6 +6,13 @@ description = "High-level interface for the Diamondfire block language compiler 
 
 edition = "2024"
 
+[features]
+rank_noble    = [ "diamondfire-sys/rank_noble" ]
+rank_emperor  = [ "diamondfire-sys/rank_emperor",   "rank_noble"    ]
+rank_mythic   = [ "diamondfire-sys/rank_mythic",    "rank_emperor"  ]
+rank_overlord = [ "diamondfire-sys/rank_overlord",  "rank_mythic"   ]
+rank_dev      = [ "diamondfire-sys/rank_dev",       "rank_overlord" ]
+
 
 [lints.rust]
 unused_parens     = "allow"

@@ -86,7 +86,7 @@ pub struct ActionDumpColour {
     pub blue  : u8
 }
 
-#[derive(Deser, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deser, Debug)]
 #[serde(deny_unknown_fields)]
 pub enum ActionDumpRequiredRank {
     #[serde(rename = "")]
@@ -96,6 +96,25 @@ pub enum ActionDumpRequiredRank {
     Mythic,
     Overlord,
     Dev
+}
+impl ActionDumpRequiredRank {
+    pub fn is_none(self) -> bool { self == Self::None }
+    pub fn name(self) -> Option<&'static str> { match (self) {
+        Self::None     => None,
+        Self::Noble    => Some("Noble"),
+        Self::Emperor  => Some("Emperor"),
+        Self::Mythic   => Some("Mythic"),
+        Self::Overlord => Some("Overlord"),
+        Self::Dev      => Some("Dev")
+    } }
+    pub fn feature_name(self) -> Option<&'static str> { match (self) {
+        Self::None     => None,
+        Self::Noble    => Some("rank_noble"),
+        Self::Emperor  => Some("rank_emperor"),
+        Self::Mythic   => Some("rank_mythic"),
+        Self::Overlord => Some("rank_overlord"),
+        Self::Dev      => Some("rank_dev")
+    } }
 }
 
 #[derive(Deser, Debug)]
@@ -157,19 +176,23 @@ pub struct ActionDumpIconReturn {
     pub text        : Option<String>
 }
 
-#[derive(Deser, Debug)]
+#[derive(Clone, Copy, Deser, Debug)]
 #[serde(deny_unknown_fields)]
 pub enum ActionDumpValueType {
     #[serde(rename = "NONE")]
     None,
     #[serde(rename = "ANY_TYPE")]
     Any,
-    #[serde(rename = "TEXT", alias = "BLOCK_TAG")]
+    #[serde(rename = "TEXT")]
     String,
+    #[serde(rename = "BLOCK_TAG")]
+    BlockTag,
     #[serde(rename = "COMPONENT")]
     Text,
-    #[serde(rename = "NUMBER", alias = "BYTE")]
+    #[serde(rename = "NUMBER")]
     Number,
+    #[serde(rename = "BYTE")]
+    Byte,
     #[serde(rename = "LOCATION")]
     Location,
     #[serde(rename = "VECTOR")]
@@ -180,8 +203,18 @@ pub enum ActionDumpValueType {
     Particle,
     #[serde(rename = "POTION")]
     Potion,
-    #[serde(rename = "ITEM", alias = "BLOCK", alias = "PROJECTILE", alias = "SPAWN_EGG", alias = "ENTITY_TYPE", alias = "VEHICLE")]
+    #[serde(rename = "ITEM")]
     Item,
+    #[serde(rename = "BLOCK")]
+    Block,
+    #[serde(rename = "PROJECTILE")]
+    Projectile,
+    #[serde(rename = "SPAWN_EGG")]
+    SpawnEgg,
+    #[serde(rename = "ENTITY_TYPE")]
+    EntityType,
+    #[serde(rename = "VEHICLE")]
+    Vehicle,
     #[serde(rename = "LIST")]
     List,
     #[serde(rename = "DICT")]
@@ -190,21 +223,51 @@ pub enum ActionDumpValueType {
     Variable
 }
 impl ActionDumpValueType {
+    pub fn name(self) -> &'static str { match (self) {
+        Self::None       => "None",
+        Self::Any        => "Any",
+        Self::String     => "String",
+        Self::BlockTag   => "Block Tag",
+        Self::Text       => "Styled Text",
+        Self::Number     => "Number",
+        Self::Byte       => "Byte",
+        Self::Location   => "Location",
+        Self::Vector     => "Vector",
+        Self::Sound      => "Sound",
+        Self::Particle   => "Particle",
+        Self::Potion     => "Potion",
+        Self::Item       => "Item",
+        Self::Block      => "Block",
+        Self::Projectile => "Projectile",
+        Self::SpawnEgg   => "SpawnEgg",
+        Self::EntityType => "EntityType",
+        Self::Vehicle    => "Vehicle",
+        Self::List       => "List",
+        Self::Dict       => "Dict",
+        Self::Variable   => "Variable"
+    } }
     pub fn type_name(self) -> Option<&'static str> { match (self) {
-        Self::None     => None,
-        Self::Any      => Some("df_opaque"),
-        Self::String   => Some("df_string"),
-        Self::Text     => Some("df_text"),
-        Self::Number   => Some("df_number"),
-        Self::Location => Some("df_location"),
-        Self::Vector   => Some("df_vector"),
-        Self::Sound    => Some("df_sound"),
-        Self::Particle => Some("df_particle"),
-        Self::Potion   => Some("df_potion"),
-        Self::Item     => Some("df_item"),
-        Self::List     => Some("df_list"),
-        Self::Dict     => Some("df_dict"),
-        Self::Variable => None
+        Self::None       => None,
+        Self::Any        => Some("df_opaque"),
+        Self::String     => Some("df_string"),
+        Self::BlockTag   => Some("df_string"),
+        Self::Text       => Some("df_text"),
+        Self::Number     => Some("df_number"),
+        Self::Byte       => Some("df_number"),
+        Self::Location   => Some("df_location"),
+        Self::Vector     => Some("df_vector"),
+        Self::Sound      => Some("df_sound"),
+        Self::Particle   => Some("df_particle"),
+        Self::Potion     => Some("df_potion"),
+        Self::Item       => Some("df_item"),
+        Self::Block      => Some("df_item"),
+        Self::Projectile => Some("df_item"),
+        Self::SpawnEgg   => Some("df_item"),
+        Self::EntityType => Some("df_item"),
+        Self::Vehicle    => Some("df_item"),
+        Self::List       => Some("df_list"),
+        Self::Dict       => Some("df_dict"),
+        Self::Variable   => Some("*mut df_opaque")
     } }
 }
 
