@@ -36,7 +36,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn x(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__GetVectorComp__Component(
+        DF_ACTION__setSPECIALSpace_variable__GetVectorComp(
             df_string::from_str("X"),
             out.as_mut_ptr(),
             self._opaque
@@ -47,7 +47,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn y(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__GetVectorComp__Component(
+        DF_ACTION__setSPECIALSpace_variable__GetVectorComp(
             df_string::from_str("Y"),
             out.as_mut_ptr(),
             self._opaque
@@ -58,7 +58,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn z(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__GetVectorComp__Component(
+        DF_ACTION__setSPECIALSpace_variable__GetVectorComp(
             df_string::from_str("Z"),
             out.as_mut_ptr(),
             self._opaque
@@ -74,7 +74,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn with_x(self, x : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__SetVectorComp__Component(
+        DF_ACTION__setSPECIALSpace_variable__SetVectorComp(
             df_string::from_str("X"),
             out.as_mut_ptr(),
             self._opaque,
@@ -86,7 +86,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn with_y(self, y : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__SetVectorComp__Component(
+        DF_ACTION__setSPECIALSpace_variable__SetVectorComp(
             df_string::from_str("Y"),
             out.as_mut_ptr(),
             self._opaque,
@@ -98,7 +98,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn with_z(self, z : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__SetVectorComp__Component(
+        DF_ACTION__setSPECIALSpace_variable__SetVectorComp(
             df_string::from_str("Z"),
             out.as_mut_ptr(),
             self._opaque,
@@ -115,7 +115,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn length(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__GetVectorLength__LengthSPECIALSpace_Type(
+        DF_ACTION__setSPECIALSpace_variable__GetVectorLength(
             df_string::from_str("Length"),
             out.as_mut_ptr(),
             self._opaque
@@ -126,7 +126,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn length_squared(self) -> f64 { unsafe {
         let mut out = MaybeUninit::<df_number>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__GetVectorLength__LengthSPECIALSpace_Type(
+        DF_ACTION__setSPECIALSpace_variable__GetVectorLength(
             df_string::from_str("Length Squared"),
             out.as_mut_ptr(),
             self._opaque
@@ -235,7 +235,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn rotate_x(self, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis__Axis__AngleSPECIALSpace_Units(
+        DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis(
             df_string::from_str("X"),
             df_string::from_str("Radians"),
             out.as_mut_ptr(),
@@ -248,7 +248,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn rotate_y(self, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis__Axis__AngleSPECIALSpace_Units(
+        DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis(
             df_string::from_str("Y"),
             df_string::from_str("Radians"),
             out.as_mut_ptr(),
@@ -261,7 +261,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn rotate_z(self, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis__Axis__AngleSPECIALSpace_Units(
+        DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis(
             df_string::from_str("Z"),
             df_string::from_str("Radians"),
             out.as_mut_ptr(),
@@ -274,7 +274,7 @@ impl Vec3 {
     #[inline(always)]
     pub fn rotate(self, axis : Vec3, angle : f64) -> Self { unsafe {
         let mut out = MaybeUninit::<df_vector>::uninit();
-        DF_ACTION__setSPECIALSpace_variable__RotateAroundVec__AngleSPECIALSpace_Units(
+        DF_ACTION__setSPECIALSpace_variable__RotateAroundVec(
             df_string::from_str("Radians"),
             out.as_mut_ptr(),
             self._opaque,

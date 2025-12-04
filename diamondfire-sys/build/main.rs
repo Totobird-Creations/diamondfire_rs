@@ -80,6 +80,20 @@ pub fn main() {
     }
 
     {
+        let mut f = File::create("src/generated/gamevalue.rs").unwrap();
+        writeln!(f, "use crate::*;").unwrap();
+        writeln!(f, "unsafe extern \"C\" {{").unwrap();
+        for gamevalue in ad.game_values {
+            if (! gamevalue.icon.deprecation.is_empty()) {
+                writeln!(f, "    #[deprecated = {:?}]", gamevalue.icon.deprecation.join(" ")).unwrap();
+            }
+            // TODO: targets
+            writeln!(f, "    pub safe fn DF_GAMEVALUE__{}(target : df_string) -> {};", identify(&gamevalue.icon.name), gamevalue.icon.return_type.unwrap().type_name().unwrap()).unwrap();
+        }
+        writeln!(f, "}}").unwrap();
+    }
+
+    {
         let mut f = File::create("src/generated/action.rs").unwrap();
         writeln!(f, "use crate::*;").unwrap();
         writeln!(f, "unsafe extern \"C\" {{").unwrap();
@@ -88,12 +102,9 @@ pub fn main() {
                 writeln!(f, "    #[deprecated = {:?}]", action.icon.deprecation.join(" ")).unwrap();
             }
             write!(f, "    pub unsafe fn DF_ACTION__{}__{}", identify(&action.codeblock.to_lowercase()), identify(&action.name)).unwrap();
-            for tag in &action.tags {
-                write!(f, "__{}", identify(&tag.name)).unwrap();
-            }
             write!(f, "(").unwrap();
             for tag in &action.tags {
-                write!(f, "r#{} : df_string, ", tag.name.to_lowercase().replace(|ch| ! ident::VALID_CHARS.contains(&ch), "_")).unwrap();
+                write!(f, "r#{} : df_string, ", identify(&tag.name)).unwrap();
             }
             write!(f, "...)").unwrap();
             if (action.codeblock == "CONTROL" && (action.name == "Return" || action.name == "ReturnNTimes" || action.name == "End")) {

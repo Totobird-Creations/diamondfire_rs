@@ -7,5 +7,7 @@ mod particle;
 pub use particle::*;
 mod potion;
 pub use potion::*;
+mod gamevalue;
+pub use gamevalue::*;
 mod action;
 pub use action::*;

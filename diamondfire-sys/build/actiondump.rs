@@ -189,6 +189,24 @@ pub enum ActionDumpValueType {
     #[serde(rename = "VARIABLE")]
     Variable
 }
+impl ActionDumpValueType {
+    pub fn type_name(self) -> Option<&'static str> { match (self) {
+        Self::None     => None,
+        Self::Any      => Some("df_opaque"),
+        Self::String   => Some("df_string"),
+        Self::Text     => Some("df_text"),
+        Self::Number   => Some("df_number"),
+        Self::Location => Some("df_location"),
+        Self::Vector   => Some("df_vector"),
+        Self::Sound    => Some("df_sound"),
+        Self::Particle => Some("df_particle"),
+        Self::Potion   => Some("df_potion"),
+        Self::Item     => Some("df_item"),
+        Self::List     => Some("df_list"),
+        Self::Dict     => Some("df_dict"),
+        Self::Variable => None
+    } }
+}
 
 #[derive(Deser, Debug)]
 #[serde(deny_unknown_fields)]
