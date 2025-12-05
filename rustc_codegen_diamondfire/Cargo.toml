@@ -6,6 +6,9 @@ description = "Rust compiler codegen for the DiamondFire block language compiler
 
 edition = "2024"
 
+[package.metadata.rust-analyzer]
+rustc_private = true
+
 [lib]
 crate-type = [ "cdylib" ]
 
