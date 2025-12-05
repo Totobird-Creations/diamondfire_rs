@@ -12,3 +12,6 @@ crate-type = [ "cdylib" ]
 
 [lints.rust]
 unused_parens = "allow"
+
+[lints.clippy]
+double_parens = "allow"

@@ -1,3 +1,4 @@
+use crate::dfmir::DfMirFn;
 use core::hash::{ Hash, Hasher };
 use std::hash::DefaultHasher;
 use rustc_middle::{
@@ -8,7 +9,8 @@ use rustc_middle::{
     },
     ty::{
         Instance,
-        TyCtxt
+        TyCtxt,
+        TyKind
     }
 };
 use rustc_hir::def_id::{
@@ -18,20 +20,17 @@ use rustc_hir::def_id::{
 
 
 mod stmt;
-pub use stmt::stmt_to_dfmir;
+pub use stmt::*;
 mod term;
-pub use term::term_to_dfmir;
+pub use term::*;
 mod place;
-pub use place::place_read_to_dfmir;
+pub use place::*;
 mod rvalue;
-pub use rvalue::rvalue_to_dfmir;
+pub use rvalue::*;
 mod operand;
-pub use operand::operand_to_dfmir;
-mod r#const;
-pub use r#const::{
-    const_to_dfmir,
-    tyconst_to_dfmir
-};
+pub use operand::*;
+mod ty;
+pub use ty::*;
 
 
 pub fn mangle_name(tcx : TyCtxt<'_>, def_id : DefId) -> String {
@@ -56,23 +55,40 @@ pub fn mir_to_dfmir<'tcx>(
     let name = mangle_name(tcx, instance.def_id());
     if (name == "rust_begin_unwind") { return; }
 
-    println!("  {}:", name);
-    for (i, bb,) in mir.basic_blocks.iter().enumerate() {
-        println!("    bb{}:", i);
-        bb_to_dfmir(tcx, instance, bb);
+    let mut dest = DfMirFn::new(name);
+
+    let instance_ty      = tcx.type_of(instance.def_id()).instantiate(tcx, instance.args);
+    let instance_ty_kind = instance_ty.kind();
+    match (instance_ty_kind) {
+        TyKind::FnDef(_, _) => {
+            let sig = instance_ty.fn_sig(tcx);
+            for input in sig.inputs().skip_binder() {
+                _ = dest.push_param(ty_to_dfmir(tcx, input));
+            }
+            dest.insert_local(0, ty_to_dfmir(tcx, &sig.output().skip_binder()));
+        },
+        _ => todo!("{:?}", instance_ty_kind)
     }
+
+    for bb in mir.basic_blocks.iter() {
+        dest.push_block();
+        bb_to_dfmir(&mut dest, tcx, instance, bb);
+    }
+
+    println!("{:#?}", dest);
 }
 
 
 fn bb_to_dfmir<'tcx>(
+    dest      : &mut DfMirFn,
     tcx       : TyCtxt<'tcx>,
     _instance : Instance<'tcx>,
     bb        : &BasicBlockData<'tcx>
 ) {
     for stmt in &bb.statements {
-        stmt_to_dfmir(tcx, stmt);
+        stmt_to_dfmir(dest, tcx, stmt);
     }
     if let Some(term) = &bb.terminator {
-        term_to_dfmir(tcx, term);
+        term_to_dfmir(dest, tcx, term);
     }
 }

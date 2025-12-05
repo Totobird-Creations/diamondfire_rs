@@ -1,4 +1,8 @@
-#![feature(rustc_private)]
+#![feature(
+    rustc_private,
+    f128,
+    debug_closure_helpers
+)]
 
 
 extern crate rustc_codegen_ssa;

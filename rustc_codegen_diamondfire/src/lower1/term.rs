@@ -1,3 +1,7 @@
+use crate::dfmir::{
+    DfMirFn,
+    DfMirStmt
+};
 use rustc_errors::{ Diag, Level, ErrorGuaranteed };
 use rustc_middle::{
     mir::{
@@ -10,6 +14,7 @@ use rustc_middle::{
 
 
 pub fn term_to_dfmir<'tcx>(
+    dest : &mut DfMirFn,
     tcx  : TyCtxt<'tcx>,
     term : &Terminator<'tcx>
 ) {
@@ -36,11 +41,11 @@ pub fn term_to_dfmir<'tcx>(
         },
 
         TerminatorKind::Return => {
-            println!("      return");
+            dest.push_stmt(DfMirStmt::Return);
         },
 
         TerminatorKind::Unreachable => {
-            println!("      unreachable");
+            todo!()
         },
 
         TerminatorKind::Drop { unwind, drop, async_fut, .. } => {

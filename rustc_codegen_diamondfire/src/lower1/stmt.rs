@@ -1,3 +1,11 @@
+use crate::dfmir::{
+    DfMirFn,
+    DfMirStmt
+};
+use super::{
+    place_to_dfmir,
+    rvalue_to_dfmir
+};
 use rustc_middle::{
     mir::{
         Statement,
@@ -9,13 +17,17 @@ use rustc_middle::{
 
 
 pub fn stmt_to_dfmir<'tcx>(
-    _tcx : TyCtxt<'tcx>,
+    dest : &mut DfMirFn,
+    tcx  : TyCtxt<'tcx>,
     stmt : &Statement<'tcx>
 ) {
     match (&stmt.kind) {
 
-        StatementKind::Assign(_) => {
-            todo!()
+        StatementKind::Assign(assign) => {
+            let (place, value,) = &**assign;
+            let df_place = place_to_dfmir(dest, tcx, place, false);
+            let df_value = rvalue_to_dfmir(dest, tcx, value);
+            dest.push_stmt(DfMirStmt::SetPlace { place : df_place, value : df_value });
         },
 
         StatementKind::FakeRead(_) => { unreachable!("disallowed after drop elaboration") },

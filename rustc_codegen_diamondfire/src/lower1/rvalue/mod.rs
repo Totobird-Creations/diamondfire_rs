@@ -1,13 +1,23 @@
+use crate::dfmir::{
+    DfMirFn,
+    DfMirBasicVal
+};
+use super::operand_to_dfmir;
 use rustc_middle::{
     mir::Rvalue,
     ty::TyCtxt
 };
 
 
+mod binop;
+pub use binop::*;
+
+
 pub fn rvalue_to_dfmir<'tcx>(
-    _tcx   : TyCtxt<'tcx>,
+    dest   : &mut DfMirFn,
+    tcx    : TyCtxt<'tcx>,
     rvalue : &Rvalue<'tcx>
-) {
+) -> DfMirBasicVal {
     match (rvalue) {
 
         Rvalue::Use(_) => {
@@ -34,8 +44,11 @@ pub fn rvalue_to_dfmir<'tcx>(
             todo!()
         },
 
-        Rvalue::BinaryOp(_, _) => {
-            todo!()
+        Rvalue::BinaryOp(op, values) => {
+            let (left, right,) = &**values;
+            let df_left  = operand_to_dfmir(dest, tcx, left);
+            let df_right = operand_to_dfmir(dest, tcx, right);
+            binop_to_dfmir(dest, tcx, *op, df_left, df_right)
         },
 
         Rvalue::NullaryOp(_, _) => {
