@@ -117,12 +117,12 @@ pub enum DfMirStmt {
         value     : DfMirBasicVal
     },
 
-    UncheckedAdd {
+    AddWrapping {
         temporary : usize,
         left      : DfMirBasicVal,
         right     : DfMirBasicVal
     },
-    UncheckedSub {
+    SubWrapping {
         temporary : usize,
         left      : DfMirBasicVal,
         right     : DfMirBasicVal
@@ -141,8 +141,8 @@ impl Debug for DfMirStmt {
         match (self) {
             DfMirStmt::SetPlace { place, value }               => { write!(f, "{:?} = {:?}", place, value) }
             DfMirStmt::SetTemporary { temporary, value }       => { write!(f, "temp.{} = {:?}", temporary, value) },
-            DfMirStmt::UncheckedAdd { temporary, left, right } => { write!(f, "temp.{} = {:?} +! {:?}", temporary, left, right) },
-            DfMirStmt::UncheckedSub { temporary, left, right } => { write!(f, "temp.{} = {:?} -! {:?}", temporary, left, right) },
+            DfMirStmt::AddWrapping { temporary, left, right } => { write!(f, "temp.{} = {:?} +! {:?}", temporary, left, right) },
+            DfMirStmt::SubWrapping { temporary, left, right } => { write!(f, "temp.{} = {:?} -! {:?}", temporary, left, right) },
             DfMirStmt::GreaterThan { temporary, left, right }  => { write!(f, "temp.{} = {:?} > {:?}", temporary, left, right) },
             DfMirStmt::Return                                  => { write!(f, "return") }
         }

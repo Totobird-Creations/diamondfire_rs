@@ -11,13 +11,13 @@ fn increment_value(v : u64) -> u64 {
     return v + 1;
 }
 
-// fn increment_counter() {
-//     unsafe { GLOBAL_COUNTER += 1; }
-// }
-
 fn decrement_value(v : u64) -> u64 {
     return v - 1;
 }
+
+// fn increment_counter() {
+//     unsafe { GLOBAL_COUNTER += 1; }
+// }
 
 // fn decrement_counter() {
 //     unsafe { GLOBAL_COUNTER -= 1; }

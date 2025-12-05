@@ -25,7 +25,7 @@ pub fn binop_to_dfmir(
             let right_ty = right.ty(dest);
             assert_eq!(left_ty, right_ty);
             let temporary = dest.add_temporary(left_ty.into_owned());
-            dest.push_stmt(DfMirStmt::UncheckedAdd {
+            dest.push_stmt(DfMirStmt::AddWrapping {
                 temporary, left, right
             });
             DfMirBasicVal::Temporary(temporary)
@@ -40,7 +40,7 @@ pub fn binop_to_dfmir(
             let right_ty = right.ty(dest);
             assert_eq!(left_ty, right_ty);
             let temporary = dest.add_temporary(left_ty.into_owned());
-            dest.push_stmt(DfMirStmt::UncheckedSub {
+            dest.push_stmt(DfMirStmt::SubWrapping {
                 temporary, left, right
             });
             DfMirBasicVal::Temporary(temporary)
