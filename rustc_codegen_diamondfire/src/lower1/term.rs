@@ -5,6 +5,7 @@ use crate::{
     },
     diag
 };
+use super::operand_to_dfmir;
 use rustc_middle::{
     mir::{
         Terminator,
@@ -26,7 +27,8 @@ pub fn term_to_dfmir<'tcx>(
             todo!();
         },
 
-        TerminatorKind::SwitchInt { .. } => {
+        TerminatorKind::SwitchInt { discr, targets } => {
+            let df_discr = operand_to_dfmir(dest, tcx, discr);
             todo!();
         },
 

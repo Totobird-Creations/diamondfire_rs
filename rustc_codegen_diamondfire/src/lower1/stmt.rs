@@ -25,8 +25,13 @@ pub fn stmt_to_dfmir<'tcx>(
 
         StatementKind::Assign(assign) => {
             let (place, value,) = &**assign;
-            let df_place = place_to_dfmir(dest, tcx, place, false);
-            let df_value = rvalue_to_dfmir(dest, tcx, value);
+            let mut df_place = place_to_dfmir(dest, tcx, place, false);
+            let     df_value = rvalue_to_dfmir(dest, tcx, value);
+            if (df_place.project.is_empty()) {
+                let ty = df_value.ty(dest).into_owned();
+                df_place.ty = Some(ty.clone());
+                dest.insert_local(df_place.local, ty);
+            }
             dest.push_stmt(DfMirStmt::SetPlace { place : df_place, value : df_value });
         },
 

@@ -27,12 +27,10 @@ pub fn operand_to_dfmir<'tcx>(
 ) -> DfMirBasicVal {
     match (operand) {
 
-        Operand::Copy(place) => {
+        Operand::Copy(place) | Operand::Move(place) => {
             let df_place = place_to_dfmir(dest, tcx, place, true);
             place_read_dfmir(dest, tcx, df_place)
         },
-
-        Operand::Move(_) => { todo!() },
 
         Operand::Constant(operand) => { const_to_dfmir(dest, tcx, &operand.const_) }
 

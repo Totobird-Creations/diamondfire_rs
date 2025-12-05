@@ -86,7 +86,13 @@ pub fn ty_to_dfmir<'tcx>(
 
         TyKind::Never => todo!(),
 
-        TyKind::Tuple(_) => todo!(),
+        TyKind::Tuple(ty) => {
+            if (ty.is_empty()) {
+                DfMirTy::Zst
+            } else {
+                todo!()
+            }
+        },
 
         TyKind::Alias(_, _) => todo!(),
 

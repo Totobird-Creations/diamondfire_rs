@@ -72,7 +72,7 @@ impl DfMirFn {
     }
 
     pub fn insert_local(&mut self, local : usize, ty : DfMirTy) {
-        self.locals.insert(local, DfMirSlot {
+        _ = self.locals.try_insert(local, DfMirSlot {
             ty,
             refed : DfMirSlotRefState::None
         });
@@ -116,7 +116,18 @@ pub enum DfMirStmt {
         temporary : usize,
         value     : DfMirBasicVal
     },
-    Add {
+
+    UncheckedAdd {
+        temporary : usize,
+        left      : DfMirBasicVal,
+        right     : DfMirBasicVal
+    },
+    UncheckedSub {
+        temporary : usize,
+        left      : DfMirBasicVal,
+        right     : DfMirBasicVal
+    },
+    GreaterThan {
         temporary : usize,
         left      : DfMirBasicVal,
         right     : DfMirBasicVal
@@ -128,10 +139,12 @@ pub enum DfMirStmt {
 impl Debug for DfMirStmt {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         match (self) {
-            DfMirStmt::SetPlace { place, value }         => { write!(f, "{:?} = {:?}", place, value) }
-            DfMirStmt::SetTemporary { temporary, value } => { write!(f, "temp.{} = {:?}", temporary, value) },
-            DfMirStmt::Add { temporary, left, right }    => { write!(f, "temp.{} = {:?} + {:?}", temporary, left, right) },
-            DfMirStmt::Return                            => { write!(f, "return") }
+            DfMirStmt::SetPlace { place, value }               => { write!(f, "{:?} = {:?}", place, value) }
+            DfMirStmt::SetTemporary { temporary, value }       => { write!(f, "temp.{} = {:?}", temporary, value) },
+            DfMirStmt::UncheckedAdd { temporary, left, right } => { write!(f, "temp.{} = {:?} +! {:?}", temporary, left, right) },
+            DfMirStmt::UncheckedSub { temporary, left, right } => { write!(f, "temp.{} = {:?} -! {:?}", temporary, left, right) },
+            DfMirStmt::GreaterThan { temporary, left, right }  => { write!(f, "temp.{} = {:?} > {:?}", temporary, left, right) },
+            DfMirStmt::Return                                  => { write!(f, "return") }
         }
     }
 }

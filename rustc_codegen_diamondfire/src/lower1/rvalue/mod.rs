@@ -20,9 +20,7 @@ pub fn rvalue_to_dfmir<'tcx>(
 ) -> DfMirBasicVal {
     match (rvalue) {
 
-        Rvalue::Use(_) => {
-            todo!()
-        },
+        Rvalue::Use(operand) => { operand_to_dfmir(dest, tcx, operand) },
 
         Rvalue::Repeat(_, _) => {
             todo!()

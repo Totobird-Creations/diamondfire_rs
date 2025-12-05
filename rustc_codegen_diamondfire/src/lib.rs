@@ -1,7 +1,8 @@
 #![feature(
     rustc_private,
     f128,
-    debug_closure_helpers
+    debug_closure_helpers,
+    map_try_insert
 )]
 
 

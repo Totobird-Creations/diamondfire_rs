@@ -54,6 +54,7 @@ pub enum DfMirSlotRefState {
 #[derive(Clone, Eq)]
 pub enum DfMirTy {
     // Unknown,
+    Zst,
     Str(DfMirStrTy),
     Text,
     Num(DfMirNumTy),
@@ -70,6 +71,7 @@ pub enum DfMirTy {
 impl Debug for DfMirTy {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         match (self) {
+            Self::Zst => { write!(f, "()") },
             Self::Str(ty) => { match (ty) {
                 DfMirStrTy::String => { write!(f, "Str") },
                 DfMirStrTy::Char   => { write!(f, "Char") },
