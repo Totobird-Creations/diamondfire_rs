@@ -6,7 +6,7 @@ cd $(dirname ${0})
 # This ensures that all artifacts are regenerated.
 # This is unneeded unless rustc_codegen_diamondfire has been modified.
 rm rustc-ice-*.txt
-# rm -rd target
+rm -rd target
 rm ../diamondfire-macros/rustc-ice-*.txt
 rm ../diamondfire-sys/rustc-ice-*.txt
 
@@ -23,4 +23,4 @@ printf "\n\x1b[32mCompiling Linker Executable...\x1b[0m\n"
 
 # Builds the example library.
 printf "\n\x1b[32mCompiling Example Library...\x1b[0m\n"
-cargo build -Zbuild-std --target=../diamondfire-unknown-unknown.json --example=transform || exit 1
+cargo build -Zbuild-std --target=../diamondfire-unknown-unknown.json --example=static --release || exit 1

@@ -5,9 +5,9 @@ mod val;
 pub use val::*;
 
 pub struct DfMirFn {
-    name   : String,
-    params : Vec<DfMirParamTy>,
-    stmts  : Vec<DfMirStmt>
+    pub name   : String,
+    pub params : Vec<DfMirParamTy>,
+    pub stmts  : Vec<DfMirStmt>
 }
 
 pub enum DfMirStmt {

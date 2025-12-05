@@ -45,18 +45,15 @@ use rustc_query_system::dep_graph::{
     WorkProduct
 };
 use rustc_session::{
-    config::{
-        OutputFilenames,
-        OutputType
-    },
+    config::OutputFilenames,
     Session
 };
 
 
-mod cfg;
-mod dfmir;
+pub mod cfg;
+pub mod dfmir;
 
-mod lower1;
+pub mod lower1;
 
 
 struct CrateToJoin {
@@ -76,6 +73,9 @@ impl CodegenBackend for DiamondfireCodegen {
     fn codegen_crate<'tcx>(&self, tcx : TyCtxt<'tcx>) -> Box<dyn Any> {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
         let crate_name = crate_info.local_crate_name.to_string();
+        if (crate_name == "core" || crate_name == "compiler_builtins") {
+            return Box::new(CrateToJoin { crate_info });
+        }
 
         let module_items = tcx.hir_crate_items(());
         for item_id in module_items.free_items() {
@@ -123,16 +123,16 @@ impl CodegenBackend for DiamondfireCodegen {
 
     fn join_codegen(&self,
         ongoing_codegen : Box<dyn Any>,
-        sess            : &Session,
+        _sess           : &Session,
         outputs         : &OutputFilenames
     ) -> (CodegenResults, FxIndexMap<WorkProductId, WorkProduct>,) {
         let ongoing_codegen = ongoing_codegen.downcast::<CrateToJoin>().unwrap();
 
-        // TODO: Write data used by the linker.
         println!("\n{:?}", ongoing_codegen.crate_info.crate_types);
         println!("{}", ongoing_codegen.crate_info.local_crate_name);
         println!("{:?}\n", outputs.with_extension("dfrs-cg"));
-        let mut f = File::create(outputs.with_extension("dfrs-cg")).unwrap();
+        File::create(outputs.with_extension("dfrs-cg")).unwrap();
+        // TODO: Write data used by the linker.
 
         (CodegenResults {
             modules          : Vec::new(),

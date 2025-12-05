@@ -1,15 +1,10 @@
 use core::hash::{ Hash, Hasher };
 use std::hash::DefaultHasher;
-use rustc_errors::{ Diag, Level, ErrorGuaranteed };
 use rustc_middle::{
     middle::codegen_fn_attrs::CodegenFnAttrFlags,
     mir::{
         Body,
-        BasicBlockData,
-        Statement,
-        StatementKind,
-        Terminator,
-        TerminatorKind
+        BasicBlockData
     },
     ty::{
         Instance,
@@ -19,6 +14,23 @@ use rustc_middle::{
 use rustc_hir::def_id::{
     DefId,
     LOCAL_CRATE
+};
+
+
+mod stmt;
+pub use stmt::stmt_to_dfmir;
+mod term;
+pub use term::term_to_dfmir;
+mod place;
+pub use place::place_read_to_dfmir;
+mod rvalue;
+pub use rvalue::rvalue_to_dfmir;
+mod operand;
+pub use operand::operand_to_dfmir;
+mod r#const;
+pub use r#const::{
+    const_to_dfmir,
+    tyconst_to_dfmir
 };
 
 
@@ -46,117 +58,21 @@ pub fn mir_to_dfmir<'tcx>(
 
     println!("  {}:", name);
     for (i, bb,) in mir.basic_blocks.iter().enumerate() {
-        // println!("    bb{}:", i);
+        println!("    bb{}:", i);
         bb_to_dfmir(tcx, instance, bb);
     }
 }
 
 
 fn bb_to_dfmir<'tcx>(
-    tcx      : TyCtxt<'tcx>,
-    instance : Instance<'tcx>,
-    bb       : &BasicBlockData<'tcx>
+    tcx       : TyCtxt<'tcx>,
+    _instance : Instance<'tcx>,
+    bb        : &BasicBlockData<'tcx>
 ) {
     for stmt in &bb.statements {
         stmt_to_dfmir(tcx, stmt);
     }
     if let Some(term) = &bb.terminator {
         term_to_dfmir(tcx, term);
-    }
-}
-
-
-fn stmt_to_dfmir<'tcx>(
-    tcx  : TyCtxt<'tcx>,
-    stmt : &Statement<'tcx>
-) {
-    match (stmt.kind) {
-
-        StatementKind::Assign(_) => { /* TODO */ },
-
-        StatementKind::FakeRead(_) => { unreachable!("disallowed after drop elaboration") },
-
-        StatementKind::SetDiscriminant { .. } => { /* TODO */ },
-
-        StatementKind::StorageLive(_) => { /* TODO */ },
-
-        StatementKind::StorageDead(_) => { /* TODO */ },
-
-        StatementKind::Retag(_, _) => { /* TODO */ },
-
-        StatementKind::PlaceMention(_) => { /* TODO */ },
-
-        StatementKind::AscribeUserType(_, _) => { /* TODO */ },
-
-        StatementKind::Coverage(_) => { /* TODO */ },
-
-        StatementKind::Intrinsic(_) => { /* TODO */ },
-
-        StatementKind::ConstEvalCounter => { },
-
-        StatementKind::Nop => { },
-
-        StatementKind::BackwardIncompatibleDropHint { .. } => { }
-
-    }
-}
-
-
-fn term_to_dfmir<'tcx>(
-    tcx  : TyCtxt<'tcx>,
-    term : &Terminator<'tcx>
-) {
-    match (term.kind) {
-
-        TerminatorKind::Goto { .. } => { /* TODO */ },
-
-        TerminatorKind::SwitchInt { .. } => { /* TODO */ },
-
-        TerminatorKind::UnwindResume { .. } => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
-
-        TerminatorKind::UnwindTerminate(_) => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
-
-        TerminatorKind::Return => { /* TODO */ },
-
-        TerminatorKind::Unreachable => { },
-
-        TerminatorKind::Drop { .. } => { /* TODO */ },
-
-        TerminatorKind::Call { .. } => { /* TODO */ },
-
-        TerminatorKind::TailCall { .. } => { /* TODO */ },
-
-        TerminatorKind::Assert { .. } => { /* TODO */ },
-
-        TerminatorKind::Yield { .. } => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "coroutines are currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
-
-        TerminatorKind::CoroutineDrop => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "coroutines are currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
-
-        TerminatorKind::FalseEdge { .. } => { unreachable!("disallowed after drop elaboration") },
-
-        TerminatorKind::FalseUnwind { .. } => { unreachable!("disallowed after drop elaboration") },
-
-        TerminatorKind::InlineAsm { .. } => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "inline assembly is unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        }
-
     }
 }
