@@ -80,7 +80,7 @@ impl CodegenBackend for DiamondfireCodegen {
     fn codegen_crate<'tcx>(&self, tcx : TyCtxt<'tcx>) -> Box<dyn Any> {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
         let crate_name = crate_info.local_crate_name.to_string();
-        if (crate_name == "core" || crate_name == "compiler_builtins") {
+        if (crate_name == "core" || crate_name == "compiler_builtins" || crate_name == "diamondfire" || crate_name == "diamondfire-sys") { // TODO: Remove
             return Box::new(CrateToJoin { crate_info });
         }
 
@@ -94,7 +94,7 @@ impl CodegenBackend for DiamondfireCodegen {
                     // TODO
                 },
                 ItemKind::Const(_, _, _, _,) => { },
-                ItemKind::Fn { .. } => {
+                ItemKind::Fn { body, .. } => {
                     let def_id   = item_id.owner_id.to_def_id();
                     let generics = tcx.generics_of(def_id);
                     if (! generics.own_params.is_empty()) {
@@ -102,8 +102,12 @@ impl CodegenBackend for DiamondfireCodegen {
                         continue;
                     }
                     let instance = Instance::mono(tcx, def_id);
+                    let hir      = tcx.hir_body(body);
                     let mir      = tcx.optimized_mir(def_id);
-                    lower1::mir_to_dfmir(tcx, instance, mir);
+                    let cfg_tree = cfg::find_body_cfg(hir);
+                    let cfg_root = cfg::recover::recover_cfg(&cfg_tree, mir.basic_blocks.iter().map(|bb| bb.terminator()));
+                    println!("{:#?}", cfg_root);
+                    // lower1::mir_to_dfmir(tcx, instance, mir);
                 },
                 ItemKind::Macro(_, _, _,) => { },
                 ItemKind::Mod(_, _,) => { },

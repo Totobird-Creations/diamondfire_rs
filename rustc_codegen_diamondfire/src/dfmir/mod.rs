@@ -1,4 +1,6 @@
 //! DiamondFire Mid-Level Intermediate Representation
+//!
+//! dfMIR is quite similar to rsMIR but with different statement types.
 
 use core::fmt::{ self, Debug, Formatter };
 use std::collections::BTreeMap;

@@ -26,4 +26,4 @@ printf "\n\x1b[32mCompiling Linker Executable...\x1b[0m\n"
 
 # Builds the example library.
 printf "\n\x1b[32mCompiling Example Library...\x1b[0m\n"
-cargo build -Zbuild-std --target=../diamondfire-unknown-unknown.json --example=static --release
+cargo build -Zbuild-std --target=../diamondfire-unknown-unknown.json --example=controlflow --release
