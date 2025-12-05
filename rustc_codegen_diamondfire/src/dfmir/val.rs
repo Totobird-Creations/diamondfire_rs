@@ -63,7 +63,8 @@ pub enum DfMirTy {
     Par,
     Pot,
     List(Box<DfMirTy>),
-    Dict(Box<DfMirTy>)
+    Dict(Box<DfMirTy>),
+    Error
 }
 
 impl Debug for DfMirTy {
@@ -89,6 +90,7 @@ impl Debug for DfMirTy {
             Self::Pot      => { write!(f, "Pot") },
             Self::List(ty) => { write!(f, "List<{:?}>", ty) },
             Self::Dict(ty) => { write!(f, "Dict<{:?}>", ty) },
+            Self::Error    => { write!(f, "error") }
         }
     }
 }

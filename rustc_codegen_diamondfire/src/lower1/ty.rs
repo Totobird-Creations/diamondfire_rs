@@ -1,6 +1,9 @@
-use crate::dfmir::{
-    DfMirTy,
-    DfMirNumTy
+use crate::{
+    dfmir::{
+        DfMirTy,
+        DfMirNumTy
+    },
+    diag
 };
 use rustc_middle::ty::{
     TyCtxt,
@@ -10,11 +13,13 @@ use rustc_middle::ty::{
     UintTy,
     FloatTy
 };
+use rustc_span::Span;
 
 
 pub fn ty_to_dfmir<'tcx>(
-    _tcx : TyCtxt<'tcx>,
-    ty   : &Ty<'tcx>
+    tcx  : TyCtxt<'tcx>,
+    ty   : &Ty<'tcx>,
+    span : Span
 ) -> DfMirTy {
     match (ty.kind()) {
 
@@ -73,11 +78,11 @@ pub fn ty_to_dfmir<'tcx>(
 
         TyKind::Closure(_, _) => todo!(),
 
-        TyKind::CoroutineClosure(_, _) => todo!(),
+        TyKind::CoroutineClosure(_, _) => { diag::coroutines_unsupported(tcx.dcx(), span); DfMirTy::Error },
 
-        TyKind::Coroutine(_, _) => todo!(),
+        TyKind::Coroutine(_, _) => { diag::coroutines_unsupported(tcx.dcx(), span); DfMirTy::Error },
 
-        TyKind::CoroutineWitness(_, _) => todo!(),
+        TyKind::CoroutineWitness(_, _) => { diag::coroutines_unsupported(tcx.dcx(), span); DfMirTy::Error },
 
         TyKind::Never => todo!(),
 

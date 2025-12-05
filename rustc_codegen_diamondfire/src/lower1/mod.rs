@@ -60,12 +60,13 @@ pub fn mir_to_dfmir<'tcx>(
     let instance_ty      = tcx.type_of(instance.def_id()).instantiate(tcx, instance.args);
     let instance_ty_kind = instance_ty.kind();
     match (instance_ty_kind) {
-        TyKind::FnDef(_, _) => {
+        TyKind::FnDef(def_id, _) => {
             let sig = instance_ty.fn_sig(tcx);
+            let span = tcx.def_span(def_id);
             for input in sig.inputs().skip_binder() {
-                _ = dest.push_param(ty_to_dfmir(tcx, input));
+                _ = dest.push_param(ty_to_dfmir(tcx, input, span)); // TODO: Use the actual span of the argument.
             }
-            dest.insert_local(0, ty_to_dfmir(tcx, &sig.output().skip_binder()));
+            dest.insert_local(0, ty_to_dfmir(tcx, &sig.output().skip_binder(), span)); // TODO: Use the actual span of the return type.
         },
         _ => todo!("{:?}", instance_ty_kind)
     }

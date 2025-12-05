@@ -1,8 +1,10 @@
-use crate::dfmir::{
-    DfMirFn,
-    DfMirStmt
+use crate::{
+    dfmir::{
+        DfMirFn,
+        DfMirStmt
+    },
+    diag
 };
-use rustc_errors::{ Diag, Level, ErrorGuaranteed };
 use rustc_middle::{
     mir::{
         Terminator,
@@ -28,17 +30,9 @@ pub fn term_to_dfmir<'tcx>(
             todo!();
         },
 
-        TerminatorKind::UnwindResume { .. } => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
+        TerminatorKind::UnwindResume { .. } => { diag::unwinding_unsupported(tcx.dcx(), term.source_info.span); },
 
-        TerminatorKind::UnwindTerminate(_) => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
+        TerminatorKind::UnwindTerminate(_) => { diag::unwinding_unsupported(tcx.dcx(), term.source_info.span); },
 
         TerminatorKind::Return => {
             dest.push_stmt(DfMirStmt::Return);
@@ -50,24 +44,17 @@ pub fn term_to_dfmir<'tcx>(
 
         TerminatorKind::Drop { unwind, drop, async_fut, .. } => {
             if (! (*unwind == UnwindAction::Continue || *unwind == UnwindAction::Unreachable)) {
-                Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                    .with_span(term.source_info.span)
-                    .emit();
-
+                diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
             }
             if (drop.is_some() || async_fut.is_some()) {
-                Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "coroutines are currently unsupported by the `diamondfire-unknown-unknown` target")
-                    .with_span(term.source_info.span)
-                    .emit();
+                diag::coroutines_unsupported(tcx.dcx(), term.source_info.span);
             }
             todo!();
         },
 
         TerminatorKind::Call { unwind, .. } => {
             if (! (*unwind == UnwindAction::Continue || *unwind == UnwindAction::Unreachable)) {
-                Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                    .with_span(term.source_info.span)
-                    .emit();
+                diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
             }
             todo!();
         },
@@ -78,34 +65,20 @@ pub fn term_to_dfmir<'tcx>(
 
         TerminatorKind::Assert { unwind, .. } => {
             if (! (*unwind == UnwindAction::Continue || *unwind == UnwindAction::Unreachable)) {
-                Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "unwinding is currently unsupported by the `diamondfire-unknown-unknown` target")
-                    .with_span(term.source_info.span)
-                    .emit();
+                diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
             }
             todo!();
         },
 
-        TerminatorKind::Yield { .. } => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "coroutines are currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
+        TerminatorKind::Yield { .. } => { diag::coroutines_unsupported(tcx.dcx(), term.source_info.span); },
 
-        TerminatorKind::CoroutineDrop => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "coroutines are currently unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        },
+        TerminatorKind::CoroutineDrop => { diag::coroutines_unsupported(tcx.dcx(), term.source_info.span); },
 
         TerminatorKind::FalseEdge { .. } => { unreachable!("disallowed after drop elaboration") },
 
         TerminatorKind::FalseUnwind { .. } => { unreachable!("disallowed after drop elaboration") },
 
-        TerminatorKind::InlineAsm { .. } => {
-            Diag::<ErrorGuaranteed>::new(tcx.dcx(), Level::Error, "inline assembly is unsupported by the `diamondfire-unknown-unknown` target")
-                .with_span(term.source_info.span)
-                .emit();
-        }
+        TerminatorKind::InlineAsm { .. } => { diag::inlineasm_unsupported(tcx.dcx(), term.source_info.span); }
 
     }
 }

@@ -59,6 +59,8 @@ pub mod dfmir;
 
 pub mod lower1;
 
+pub mod diag;
+
 
 struct CrateToJoin {
     crate_info : CrateInfo
