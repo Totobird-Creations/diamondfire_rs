@@ -28,23 +28,30 @@ static mut GLOBAL_COUNTER : u64 = 0;
 // }
 
 
-fn if_else_stmt(mut x : u64) -> u64 {
-    if ({
-        if (x == 0) {
-            x += 2;
-        }
-        x > 10
-    }) {
-        x += 20;
-    } else {
-        if (x < 5) {
-            x /= 2;
-        } else {
-            x *= 2;
-        }
+// fn if_else_stmt(mut x : u64) -> u64 {
+//     if ({
+//         if (x == 0) {
+//             x += 2;
+//         }
+//         x > 10
+//     }) {
+//         x += 20;
+//     } else {
+//         if (x < 5) {
+//             x /= 2;
+//         } else {
+//             x *= 2;
+//         }
+//     }
+//     x -= 10;
+//     x
+// }
+
+
+fn loop_forever(mut x : u64) {
+    while (x < 25) {
+        x += 3;
     }
-    x -= 10;
-    x
 }
 
 

@@ -98,8 +98,7 @@ impl CodegenBackend for DiamondfireCodegen {
                     let def_id   = item_id.owner_id.to_def_id();
                     let generics = tcx.generics_of(def_id);
                     if (! generics.own_params.is_empty()) {
-                        // Skipped direct lowering of generic function.
-                        continue;
+                        todo!();
                     }
                     let instance = Instance::mono(tcx, def_id);
                     let hir       = tcx.hir_body(body);
@@ -113,7 +112,7 @@ impl CodegenBackend for DiamondfireCodegen {
                         println!("  {:?}", bb.terminator().kind);
                     }
                     println!();
-                    let branches  = cfg::find_body_cfb(hir);
+                    let branches  = cfg::find_body_cfb(&tcx, hir);
                     let cfa_prims = cfg::analyse_cfb(tcx, branches, &mir.basic_blocks);
                     println!("{:#?}", cfa_prims);
                     println!();

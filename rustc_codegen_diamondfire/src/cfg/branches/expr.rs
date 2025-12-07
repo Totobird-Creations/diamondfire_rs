@@ -1,15 +1,18 @@
 use super::{
     CfBranches,
+    CfWhileBranch,
     CfIfBranch,
     find_block_cfb
 };
 use rustc_hir::{
     Expr,
-    ExprKind
+    ExprKind,
+    LoopSource
 };
+use rustc_middle::ty::TyCtxt;
 
 
-pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr.kind) {
+pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr<'_>) { match (expr.kind) {
 
     ExprKind::ConstBlock(_)
     | ExprKind::Lit(_)
@@ -19,9 +22,9 @@ pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr
     ExprKind::Array(_) => todo!(),
 
     ExprKind::Call(func, args) => {
-        find_expr_cfb(branches, func);
+        find_expr_cfb(tcx, branches, func);
         for section in args {
-            find_expr_cfb(branches, section);
+            find_expr_cfb(tcx, branches, section);
         }
     },
 
@@ -34,8 +37,8 @@ pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr
     ExprKind::Binary(_, a, b)
     | ExprKind::AssignOp(_, a, b)
     => {
-        find_expr_cfb(branches, a);
-        find_expr_cfb(branches, b);
+        find_expr_cfb(tcx, branches, a);
+        find_expr_cfb(tcx, branches, b);
     },
 
     ExprKind::Unary(_, _) => todo!(),
@@ -53,14 +56,26 @@ pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr
             cond_span : cond.span,
             has_else  : els.is_some()
         });
-        find_expr_cfb(branches, cond);
-        find_expr_cfb(branches, then);
+        find_expr_cfb(tcx, branches, cond);
+        find_expr_cfb(tcx, branches, then);
         if let Some(els) = els {
-            find_expr_cfb(branches, els);
+            find_expr_cfb(tcx, branches, els);
         }
     }
 
-    ExprKind::Loop(_, _, _, _) => todo!(),
+    ExprKind::Loop(block, label, source, span) => {
+        if (label.is_some()) { todo!() }
+        match (source) {
+            LoopSource::Loop => todo!(),
+            LoopSource::While => {
+                branches.whiles.push(CfWhileBranch {
+                    kw_cond_span : span
+                });
+            },
+            LoopSource::ForLoop => todo!(),
+        }
+        find_block_cfb(tcx, branches, block);
+    },
 
     ExprKind::Match(_, _, _) => todo!(),
 
@@ -68,7 +83,7 @@ pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr
 
     ExprKind::Block(block, label) => {
         if (label.is_some()) { todo!() }
-        find_block_cfb(branches, block);
+        find_block_cfb(tcx, branches, block);
     },
 
     ExprKind::Assign(_, _, _) => todo!(),
@@ -79,7 +94,14 @@ pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr
 
     ExprKind::AddrOf(_, _, _) => todo!(),
 
-    ExprKind::Break(_, _) => todo!(),
+    ExprKind::Break(dest, value,) => {
+        if (dest.label.is_some()) { todo!() }
+        if let Some(value) = value {
+            find_expr_cfb(tcx, branches, value);
+        }
+        // TODO break
+
+    },
 
     ExprKind::Continue(_) => todo!(),
 

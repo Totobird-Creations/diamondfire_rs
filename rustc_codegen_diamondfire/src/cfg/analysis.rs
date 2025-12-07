@@ -40,6 +40,10 @@ pub enum CfaPrim {
         then : BasicBlock,
         els  : BasicBlock
     },
+    While {
+        then : BasicBlock,
+        exit : BasicBlock
+    },
     Return,
     Unreachable
 }
@@ -51,6 +55,7 @@ impl CfaPrim {
         Self::IfDiverge { .. }     => None,
         Self::IfElse { exit, .. }  => Some(*exit),
         Self::IfElseDiverge { .. } => None,
+        Self::While { exit, .. }   => Some(*exit),
         Self::Return               => None,
         Self::Unreachable          => None
     } }
@@ -77,6 +82,25 @@ pub fn analyse_cfb<'tcx>(
 
             TerminatorKind::SwitchInt { targets, .. } => {
 
+                // The switch terminator span will be contained by the following while keyword+condition span.
+                for whileb in &cfb.whiles { if (whileb.kw_cond_span.contains(term.source_info.span)) {
+                    let target_bbs = targets.all_targets();
+                    assert_eq!(target_bbs.len(), 2); // then and exit
+                    let (then, exit,) = { match ((succs.get_depth(target_bbs[0], bbi), succs.get_depth(target_bbs[1], bbi),)) {
+                        (Some(a), Some(b),)  => { if (a <= b) {
+                            (target_bbs[0], target_bbs[1],)
+                        } else {
+                            (target_bbs[1], target_bbs[0],)
+                        } },
+                        (Some(_), None,) => (target_bbs[0], target_bbs[1],),
+                        (None, Some(_),) => (target_bbs[1], target_bbs[0],),
+                        (None, None,)    => unreachable!()
+                    } };
+                    prims.bbs.insert(bbi, CfaPrim::While { then, exit });
+                    continue 'bb_loop;
+                } }
+
+                // The switch terminator span will match the following if condition span.
                 for ifb in &cfb.ifs { if (ifb.cond_span == term.source_info.span) {
                     if (ifb.has_else) { // IfElse
                         let target_bbs = targets.all_targets();
@@ -181,7 +205,9 @@ impl Successors {
         } else {
             succs.insert(bbi, depth);
             for succ in bbs.get(bbi).unwrap().terminator().successors() {
-                Self::walk_bbs(all_succs, succs, bbs, succ, depth + 1);
+                if (! succs.contains_key(&succ)) {
+                    Self::walk_bbs(all_succs, succs, bbs, succ, depth + 1);
+                }
             }
         }
     }
@@ -189,6 +215,11 @@ impl Successors {
 }
 
 impl Successors {
+
+    fn get_depth(&self, from : BasicBlock, to : BasicBlock) -> Option<usize> {
+        self.0.get(&from).unwrap().get(&to).cloned()
+    }
+
     fn find_reconvergence(&self, a : BasicBlock, b : BasicBlock) -> Option<BasicBlock> {
         let a_succs      = self.0.get(&a).unwrap();
         let b_succs      = self.0.get(&b).unwrap();
@@ -196,4 +227,5 @@ impl Successors {
             .filter_map(|(a_succ, _,)| b_succs.contains_key(a_succ).then_some(*a_succ))
             .min_by_key(|bbi| a_succs.get(bbi).unwrap() + b_succs.get(bbi).unwrap())
     }
+
 }

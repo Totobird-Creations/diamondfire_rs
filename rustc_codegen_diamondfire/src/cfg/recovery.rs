@@ -6,6 +6,7 @@ use core::fmt::{ self, Display, Formatter };
 use rustc_middle::mir::BasicBlock;
 
 
+#[derive(Default)]
 pub struct CfrTree {
     pub groups : Vec<CfrTreeGroup>
 }
@@ -43,6 +44,10 @@ pub enum CfrTreeGroup {
         then : CfrTree,
         els  : CfrTree
     },
+    While {
+        cond : CfrTree,
+        then : CfrTree
+    },
     Return,
     Unreachable
 }
@@ -66,6 +71,12 @@ impl CfrTreeGroup {
                 then.fmt_indent(f, indent)?;
                 write!(f, " else ")?;
                 els.fmt_indent(f, indent)?;
+            },
+            Self::While { cond, then } => {
+                write!(f, "while (")?;
+                cond.fmt_indent(f, indent)?;
+                write!(f, ") ")?;
+                then.fmt_indent(f, indent)?;
             },
             Self::Return      => { write!(f, "return")?; },
             Self::Unreachable => { write!(f, "unreachable")?; }
@@ -100,13 +111,15 @@ fn recover_cfg_node(
     until : &mut Vec<BasicBlock>
 ) -> CfrTree {
     let     prim = prims.bbs.get(&bb).unwrap();
-    let mut tree = CfrTree::bb(bb);
+    let mut tree = CfrTree::default();
     match (prim) {
 
         CfaPrim::Jump { .. } => { // TODO: Handle jumping to block starts.
+            tree.push(CfrTreeGroup::Block(bb));
         },
 
         CfaPrim::If { then, exit } => {
+            tree.push(CfrTreeGroup::Block(bb));
             until.push(*exit);
             tree.push(CfrTreeGroup::If {
                 then : recover_cfg_node(prims, *then, until)
@@ -115,12 +128,14 @@ fn recover_cfg_node(
         },
 
         CfaPrim::IfDiverge { then } => {
+            tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::If {
                 then : recover_cfg_node(prims, *then, until)
             });
         },
 
         CfaPrim::IfElse { then, els, exit } => {
+            tree.push(CfrTreeGroup::Block(bb));
             until.push(*exit);
             tree.push(CfrTreeGroup::IfElse {
                 then : recover_cfg_node(prims, *then, until),
@@ -130,17 +145,31 @@ fn recover_cfg_node(
         },
 
         CfaPrim::IfElseDiverge { then, els } => {
+            tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::IfElse {
                 then : recover_cfg_node(prims, *then, until),
                 els  : recover_cfg_node(prims, *els, until)
             });
         },
 
+        CfaPrim::While { then, exit } => {
+            until.extend([*then, *exit,]);
+            tree.push(CfrTreeGroup::While {
+                cond : CfrTree::bb(bb),
+                then : recover_cfg_node(prims, *then, until)
+            });
+            _ = until.pop();
+            _ = until.pop();
+            todo!();
+        },
+
         CfaPrim::Return => {
+            tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::Return);
         },
 
         CfaPrim::Unreachable => {
+            tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::Unreachable)
         }
 
