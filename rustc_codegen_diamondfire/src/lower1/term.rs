@@ -34,7 +34,7 @@ pub fn term_to_dfmir<'tcx>(
 
         TerminatorKind::UnwindResume
         | TerminatorKind::UnwindTerminate(_)
-        => { /* Error emitted in CFG recovery */ },
+        => { diag::unwinding_unsupported(tcx.dcx(), term.source_info.span); },
 
         TerminatorKind::Return => {
             dest.push_stmt(DfMirStmt::Return);
@@ -74,13 +74,13 @@ pub fn term_to_dfmir<'tcx>(
 
         TerminatorKind::Yield { .. }
         | TerminatorKind::CoroutineDrop
-        => { /* Error emitted in CFG recovery */ },
+        => { diag::coroutines_unsupported(tcx.dcx(), term.source_info.span); },
 
         TerminatorKind::FalseEdge { .. }
         | TerminatorKind::FalseUnwind { .. }
-        => { /* Panic emitted in CFG recovery */ },
+        => { diag::disallowed_post_drop_elaboration(); },
 
-        TerminatorKind::InlineAsm { .. } => { /* Error emitted in CFG recovery */ }
+        TerminatorKind::InlineAsm { .. } => { diag::inlineasm_unsupported(tcx.dcx(), term.source_info.span); }
 
     }
 }

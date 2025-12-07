@@ -7,6 +7,12 @@ use rustc_errors::{
 use rustc_span::Span;
 
 
+#[inline(always)]
+#[track_caller]
+pub fn disallowed_post_drop_elaboration() {
+    unreachable!("disallowed after drop elaboration")
+}
+
 pub fn unwinding_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
     Diag::<ErrorGuaranteed>::new(dcx,
         Level::Error,

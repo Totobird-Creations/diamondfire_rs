@@ -90,35 +90,50 @@ impl CfrTree {
 pub fn recover_cfg(
     prims : &CfaPrims
 ) -> CfrTree {
-    recover_cfg_node(prims, BasicBlock::ZERO)
+    recover_cfg_node(prims, BasicBlock::ZERO, &mut Vec::new())
 }
 
 
 fn recover_cfg_node(
     prims : &CfaPrims,
-    bb    : BasicBlock
+    bb    : BasicBlock,
+    until : &mut Vec<BasicBlock>
 ) -> CfrTree {
     let     prim = prims.bbs.get(&bb).unwrap();
     let mut tree = CfrTree::bb(bb);
     match (prim) {
 
-        CfaPrim::Jump { exit } => { // TODO: Handle jumping to block starts.
-            tree.append(&mut recover_cfg_node(prims, *exit));
+        CfaPrim::Jump { .. } => { // TODO: Handle jumping to block starts.
         },
 
         CfaPrim::If { then, exit } => {
+            until.push(*exit);
             tree.push(CfrTreeGroup::If {
-                then : recover_cfg_node(prims, *then)
+                then : recover_cfg_node(prims, *then, until)
             });
-            tree.append(&mut recover_cfg_node(prims, *exit));
+            _ = until.pop();
+        },
+
+        CfaPrim::IfDiverge { then } => {
+            tree.push(CfrTreeGroup::If {
+                then : recover_cfg_node(prims, *then, until)
+            });
         },
 
         CfaPrim::IfElse { then, els, exit } => {
+            until.push(*exit);
             tree.push(CfrTreeGroup::IfElse {
-                then : recover_cfg_node(prims, *then),
-                els  : recover_cfg_node(prims, *els)
+                then : recover_cfg_node(prims, *then, until),
+                els  : recover_cfg_node(prims, *els, until)
             });
-            tree.append(&mut recover_cfg_node(prims, *exit));
+            _ = until.pop();
+        },
+
+        CfaPrim::IfElseDiverge { then, els } => {
+            tree.push(CfrTreeGroup::IfElse {
+                then : recover_cfg_node(prims, *then, until),
+                els  : recover_cfg_node(prims, *els, until)
+            });
         },
 
         CfaPrim::Return => {
@@ -129,6 +144,9 @@ fn recover_cfg_node(
             tree.push(CfrTreeGroup::Unreachable)
         }
 
+    }
+    if let Some(exit) = prim.exit() && (! until.contains(&exit)) {
+        tree.append(&mut recover_cfg_node(prims, exit, until));
     }
     tree
 }
