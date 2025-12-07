@@ -79,7 +79,13 @@ pub fn analyse_cfb<'tcx>(
 
                 for ifb in &cfb.ifs { if (ifb.cond_span == term.source_info.span) {
                     if (ifb.has_else) { // IfElse
-                        todo!()
+                        let target_bbs = targets.all_targets();
+                        assert_eq!(target_bbs.len(), 2); // then and els
+                        prims.bbs.insert(bbi, {
+                            if let Some(exit) = succs.find_reconvergence(target_bbs[0], target_bbs[1]) {
+                                CfaPrim::IfElse { then : target_bbs[0], els : target_bbs[1], exit }
+                            } else { CfaPrim::IfElseDiverge { then : target_bbs[0], els : target_bbs[1] } }
+                        });
                     } else { // If
                         let target_bbs = targets.all_targets();
                         assert_eq!(target_bbs.len(), 2); // then and fallback
@@ -89,8 +95,8 @@ pub fn analyse_cfb<'tcx>(
                                 else { CfaPrim::IfElse { then : target_bbs[0], els : target_bbs[1], exit } }
                             } else { CfaPrim::IfDiverge { then : target_bbs[0] } }
                         });
-                        continue 'bb_loop;
                     }
+                    continue 'bb_loop;
                 } }
 
                 todo!()
