@@ -32,9 +32,9 @@ pub fn term_to_dfmir<'tcx>(
             todo!();
         },
 
-        TerminatorKind::UnwindResume { .. } => { diag::unwinding_unsupported(tcx.dcx(), term.source_info.span); },
-
-        TerminatorKind::UnwindTerminate(_) => { diag::unwinding_unsupported(tcx.dcx(), term.source_info.span); },
+        TerminatorKind::UnwindResume
+        | TerminatorKind::UnwindTerminate(_)
+        => { /* Error emitted in CFG recovery */ },
 
         TerminatorKind::Return => {
             dest.push_stmt(DfMirStmt::Return);
@@ -72,15 +72,15 @@ pub fn term_to_dfmir<'tcx>(
             todo!();
         },
 
-        TerminatorKind::Yield { .. } => { diag::coroutines_unsupported(tcx.dcx(), term.source_info.span); },
+        TerminatorKind::Yield { .. }
+        | TerminatorKind::CoroutineDrop
+        => { /* Error emitted in CFG recovery */ },
 
-        TerminatorKind::CoroutineDrop => { diag::coroutines_unsupported(tcx.dcx(), term.source_info.span); },
+        TerminatorKind::FalseEdge { .. }
+        | TerminatorKind::FalseUnwind { .. }
+        => { /* Panic emitted in CFG recovery */ },
 
-        TerminatorKind::FalseEdge { .. } => { unreachable!("disallowed after drop elaboration") },
-
-        TerminatorKind::FalseUnwind { .. } => { unreachable!("disallowed after drop elaboration") },
-
-        TerminatorKind::InlineAsm { .. } => { diag::inlineasm_unsupported(tcx.dcx(), term.source_info.span); }
+        TerminatorKind::InlineAsm { .. } => { /* Error emitted in CFG recovery */ }
 
     }
 }

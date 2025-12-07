@@ -102,11 +102,23 @@ impl CodegenBackend for DiamondfireCodegen {
                         continue;
                     }
                     let instance = Instance::mono(tcx, def_id);
-                    let hir      = tcx.hir_body(body);
-                    let mir      = tcx.optimized_mir(def_id);
-                    let cfg_tree = cfg::find_body_cfg(hir);
-                    let cfg_root = cfg::recover::recover_cfg(&cfg_tree, mir.basic_blocks.iter().map(|bb| bb.terminator()));
-                    println!("{:#?}", cfg_root);
+                    let hir       = tcx.hir_body(body);
+                    let mir       = tcx.optimized_mir(def_id);
+                    println!();
+                    for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
+                        println!("bb{:?}:", bbi);
+                        for stmt in &bb.statements {
+                            println!("  {:?}", stmt);
+                        }
+                        println!("  {:?}", bb.terminator().kind);
+                    }
+                    println!();
+                    let branches  = cfg::find_body_cfb(hir);
+                    let cfa_prims = cfg::analyse_cfb(tcx, branches, &mir.basic_blocks);
+                    println!("{:#?}", cfa_prims);
+                    println!();
+                    let cfg_tree  = cfg::recover_cfg(&cfa_prims);
+                    println!("{:#}", cfg_tree);
                     // lower1::mir_to_dfmir(tcx, instance, mir);
                 },
                 ItemKind::Macro(_, _, _,) => { },

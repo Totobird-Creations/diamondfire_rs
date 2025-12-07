@@ -1,7 +1,7 @@
 use super::{
-    CfgTree,
-    CfgTreeKind,
-    find_block_cfg
+    CfBranches,
+    CfIfBranch,
+    find_block_cfb
 };
 use rustc_hir::{
     Expr,
@@ -9,30 +9,19 @@ use rustc_hir::{
 };
 
 
-pub fn find_expr_cfg(expr : &Expr<'_>) -> CfgTree { match (expr.kind) {
+pub fn find_expr_cfb(branches : &mut CfBranches, expr : &Expr<'_>) { match (expr.kind) {
 
     ExprKind::ConstBlock(_)
     | ExprKind::Lit(_)
     | ExprKind::Path(_)
-    => CfgTree {
-        span : expr.span,
-        kind : CfgTreeKind::Simple
-    },
+    => { },
 
     ExprKind::Array(_) => todo!(),
 
     ExprKind::Call(func, args) => {
-        let mut sections = Vec::with_capacity(args.len() + 1);
-        sections.push(func);
-        sections.extend(args);
-        sections.sort_by_key(|s| s.span);
-        let mut seq = Vec::new();
-        for section in sections {
-            seq.push(find_expr_cfg(section));
-        }
-        CfgTree {
-            span : expr.span,
-            kind : CfgTreeKind::Seq(seq)
+        find_expr_cfb(branches, func);
+        for section in args {
+            find_expr_cfb(branches, section);
         }
     },
 
@@ -45,16 +34,8 @@ pub fn find_expr_cfg(expr : &Expr<'_>) -> CfgTree { match (expr.kind) {
     ExprKind::Binary(_, a, b)
     | ExprKind::AssignOp(_, a, b)
     => {
-        let mut sections = [a, b];
-        sections.sort_by_key(|s| s.span);
-        let mut seq = Vec::new();
-        for section in sections {
-            seq.push(find_expr_cfg(section));
-        }
-        CfgTree {
-            span : expr.span,
-            kind : CfgTreeKind::Seq(seq)
-        }
+        find_expr_cfb(branches, a);
+        find_expr_cfb(branches, b);
     },
 
     ExprKind::Unary(_, _) => todo!(),
@@ -68,13 +49,14 @@ pub fn find_expr_cfg(expr : &Expr<'_>) -> CfgTree { match (expr.kind) {
     ExprKind::Let(_) => todo!(),
 
     ExprKind::If(cond, then, els) => {
-        CfgTree {
-            span : expr.span,
-            kind : CfgTreeKind::If(Box::new((
-                find_expr_cfg(cond),
-                find_expr_cfg(then),
-                els.map(|els| find_expr_cfg(els))
-            )))
+        branches.ifs.push(CfIfBranch {
+            cond_span : cond.span,
+            has_else  : els.is_some()
+        });
+        find_expr_cfb(branches, cond);
+        find_expr_cfb(branches, then);
+        if let Some(els) = els {
+            find_expr_cfb(branches, els);
         }
     }
 
@@ -86,7 +68,7 @@ pub fn find_expr_cfg(expr : &Expr<'_>) -> CfgTree { match (expr.kind) {
 
     ExprKind::Block(block, label) => {
         if (label.is_some()) { todo!() }
-        find_block_cfg(block)
+        find_block_cfb(branches, block);
     },
 
     ExprKind::Assign(_, _, _) => todo!(),
