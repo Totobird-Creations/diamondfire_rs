@@ -48,10 +48,24 @@ static mut GLOBAL_COUNTER : u64 = 0;
 // }
 
 
-fn loop_forever(mut x : u64) {
-    while (x < 25) {
-        x += 3;
+fn collatz_conjecture(mut x : u64) {
+    // bb0
+    while (
+        // bb1
+        x > 1
+    ) {
+        // bb2
+        if (x % 2 == 0) {
+            // bb3
+            x /= 2;
+        } else {
+            // bb4
+            x = x * 2 + 1;
+        }
+        // bb5
     }
+    // bb6
+    // return
 }
 
 

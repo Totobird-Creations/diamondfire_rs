@@ -35,6 +35,7 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
     ExprKind::Tup(_) => todo!(),
 
     ExprKind::Binary(_, a, b)
+    | ExprKind::Assign(a, b, _)
     | ExprKind::AssignOp(_, a, b)
     => {
         find_expr_cfb(tcx, branches, a);
@@ -85,8 +86,6 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
         if (label.is_some()) { todo!() }
         find_block_cfb(tcx, branches, block);
     },
-
-    ExprKind::Assign(_, _, _) => todo!(),
 
     ExprKind::Field(_, _) => todo!(),
 

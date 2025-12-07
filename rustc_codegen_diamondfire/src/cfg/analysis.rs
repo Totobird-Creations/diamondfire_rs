@@ -21,7 +21,7 @@ pub struct CfaPrims {
 
 #[derive(Debug)]
 pub enum CfaPrim {
-    Jump {
+    Sequence {
         exit : BasicBlock
     },
     If {
@@ -50,7 +50,7 @@ pub enum CfaPrim {
 
 impl CfaPrim {
     pub fn exit(&self) -> Option<BasicBlock> { match (self) {
-        Self::Jump { exit }        => Some(*exit),
+        Self::Sequence { exit }    => Some(*exit),
         Self::If { exit, .. }      => Some(*exit),
         Self::IfDiverge { .. }     => None,
         Self::IfElse { exit, .. }  => Some(*exit),
@@ -68,6 +68,7 @@ pub fn analyse_cfb<'tcx>(
     bbs : &BasicBlocks<'tcx>
 ) -> CfaPrims {
     let succs = Successors::from(bbs);
+    println!("{:?}", succs.0);
 
     let mut prims = CfaPrims::default();
     'bb_loop : for bbi in bbs.indices() {
@@ -76,7 +77,7 @@ pub fn analyse_cfb<'tcx>(
         match (&term.kind) {
 
             TerminatorKind::Goto { target } => {
-                prims.bbs.insert(bbi, CfaPrim::Jump { exit : *target });
+                prims.bbs.insert(bbi, CfaPrim::Sequence { exit : *target });
                 continue 'bb_loop;
             },
 
@@ -86,7 +87,7 @@ pub fn analyse_cfb<'tcx>(
                 for whileb in &cfb.whiles { if (whileb.kw_cond_span.contains(term.source_info.span)) {
                     let target_bbs = targets.all_targets();
                     assert_eq!(target_bbs.len(), 2); // then and exit
-                    let (then, exit,) = { match ((succs.get_depth(target_bbs[0], bbi), succs.get_depth(target_bbs[1], bbi),)) {
+                    let (then, exit,) = { match ((succs.get_depth(target_bbs[0], bbi), succs.get_depth(target_bbs[1], bbi),)) { // FIXME: I don't think this will work when break and continue statements are added.
                         (Some(a), Some(b),)  => { if (a <= b) {
                             (target_bbs[0], target_bbs[1],)
                         } else {
@@ -105,11 +106,13 @@ pub fn analyse_cfb<'tcx>(
                     if (ifb.has_else) { // IfElse
                         let target_bbs = targets.all_targets();
                         assert_eq!(target_bbs.len(), 2); // then and els
+                        println!();
                         prims.bbs.insert(bbi, {
                             if let Some(exit) = succs.find_reconvergence(target_bbs[0], target_bbs[1]) {
                                 CfaPrim::IfElse { then : target_bbs[0], els : target_bbs[1], exit }
                             } else { CfaPrim::IfElseDiverge { then : target_bbs[0], els : target_bbs[1] } }
                         });
+                        println!("{:?}", prims.bbs.get(&bbi).unwrap());
                     } else { // If
                         let target_bbs = targets.all_targets();
                         assert_eq!(target_bbs.len(), 2); // then and fallback
@@ -201,9 +204,16 @@ impl Successors {
         depth     : usize
     ) {
         if let Some(skip) = all_succs.get(&bbi) {
-            succs.extend(skip.iter().map(|(bbi1, depth1,)| (*bbi1, depth + depth1,)));
+            for (bbi1, depth1,) in skip {
+                let depth2 = depth + depth1;
+                if let Some(old_depth) = succs.get(&bbi) {
+                    if (depth2 < *old_depth) { succs.insert(*bbi1, depth2); }
+                } else { succs.insert(*bbi1, depth2); }
+            }
         } else {
-            succs.insert(bbi, depth);
+            if let Some(old_depth) = succs.get(&bbi) {
+                if (depth < *old_depth) { succs.insert(bbi, depth); }
+            } else { succs.insert(bbi, depth); }
             for succ in bbs.get(bbi).unwrap().terminator().successors() {
                 if (! succs.contains_key(&succ)) {
                     Self::walk_bbs(all_succs, succs, bbs, succ, depth + 1);

@@ -114,7 +114,7 @@ fn recover_cfg_node(
     let mut tree = CfrTree::default();
     match (prim) {
 
-        CfaPrim::Jump { .. } => { // TODO: Handle jumping to block starts.
+        CfaPrim::Sequence { .. } => { // TODO: Handle jumping to block starts.
             tree.push(CfrTreeGroup::Block(bb));
         },
 
@@ -153,14 +153,13 @@ fn recover_cfg_node(
         },
 
         CfaPrim::While { then, exit } => {
-            until.extend([*then, *exit,]);
+            until.extend([bb, *exit,]);
             tree.push(CfrTreeGroup::While {
                 cond : CfrTree::bb(bb),
                 then : recover_cfg_node(prims, *then, until)
             });
             _ = until.pop();
             _ = until.pop();
-            todo!();
         },
 
         CfaPrim::Return => {
