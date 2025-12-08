@@ -12,6 +12,7 @@ use rustc_middle::{
     },
     ty::TyCtxt
 };
+use rustc_span::Span;
 
 
 #[derive(Default, Debug)]
@@ -45,7 +46,8 @@ pub enum CfaPrim {
         exit  : Option<BasicBlock>
     },
     Return,
-    Unreachable
+    Unreachable,
+    Error
 }
 
 impl CfaPrim {
@@ -57,14 +59,15 @@ impl CfaPrim {
         Self::While { exit, .. }   => Some(*exit),
         Self::Match { exit, .. }   => *exit,
         Self::Return               => None,
-        Self::Unreachable          => None
+        Self::Unreachable          => None,
+        Self::Error                => None
     } }
 }
 
 
 pub fn analyse_cfb<'tcx>(
     tcx : TyCtxt<'tcx>,
-    cfb : CfBranches,
+    cfb : &CfBranches,
     bbs : &BasicBlocks<'tcx>
 ) -> CfaPrims {
     let succs = Successors::from(bbs);
@@ -76,26 +79,7 @@ pub fn analyse_cfb<'tcx>(
         match (&term.kind) {
 
             TerminatorKind::Goto { target } => {
-
-                for loopb in &cfb.loops {
-                    // Loop
-                    if (term.source_info.span.contains(loopb.kw_cond_span) && loopb.block_span.hi() == term.source_info.span.hi()) {
-                        prims.bbs.insert(bbi, CfaPrim::LoopDelimiter { then : *target });
-                        continue 'bb_loop;
-                    }
-                }
-
-                // TODO: break
-
-                // TODO: continue
-
-                rustc_errors::Diag::<()>::new(tcx.dcx(),
-                    rustc_errors::Level::Error,
-                    format!("{:?} goto {:?} ({:?})", bbi, target, term.source_info.span)
-                ).with_span(term.source_info.span).emit();
-
-                prims.bbs.insert(bbi, CfaPrim::Sequence { exit : *target });
-                continue 'bb_loop;
+                analyse_cfb_goto(&mut prims, tcx, cfb, bbi, term.source_info.span, *target);
             },
 
             TerminatorKind::SwitchInt { targets, .. } => {
@@ -110,7 +94,15 @@ pub fn analyse_cfb<'tcx>(
                     }
                 }
 
-                // TOOD: for
+                for forb in &cfb.fors {
+                    // For
+                    if (forb.kw_cond_span.contains(term.source_info.span)) {
+                        rustc_errors::Diag::<()>::new(tcx.dcx(),
+                            rustc_errors::Level::Error,
+                            format!("{:?} -> {:?} for", bbi, targets.all_targets())
+                        ).with_span(forb.kw_cond_span).with_span_note(forb.block_span, "block").emit();
+                    }
+                }
 
                 for ifb in &cfb.ifs {
                     if (ifb.cond_span == term.source_info.span) {
@@ -152,7 +144,7 @@ pub fn analyse_cfb<'tcx>(
                     }
                 }
 
-                diag::missing_switch(tcx.dcx(), term.source_info.span);
+                panic!("no branch handler");
             },
 
             TerminatorKind::UnwindResume
@@ -180,7 +172,11 @@ pub fn analyse_cfb<'tcx>(
                 if (! (*unwind == UnwindAction::Continue || *unwind == UnwindAction::Unreachable)) {
                     diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
                 }
-                todo!()
+                if let Some(target) = target {
+                    analyse_cfb_goto(&mut prims, tcx, cfb, bbi, term.source_info.span, *target);
+                } else {
+                    prims.bbs.insert(bbi, CfaPrim::Unreachable);
+                }
             },
 
             TerminatorKind::TailCall { .. } => todo!(),
@@ -189,7 +185,7 @@ pub fn analyse_cfb<'tcx>(
                 if (! (*unwind == UnwindAction::Continue || *unwind == UnwindAction::Unreachable)) {
                     diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
                 }
-                todo!()
+                analyse_cfb_goto(&mut prims, tcx, cfb, bbi, term.source_info.span, *target);
             },
 
             TerminatorKind::Yield { .. }
@@ -205,6 +201,35 @@ pub fn analyse_cfb<'tcx>(
         }
     }
     prims
+}
+
+
+pub fn analyse_cfb_goto<'tcx>(
+    prims  : &mut CfaPrims,
+    tcx    : TyCtxt<'tcx>,
+    cfb    : &CfBranches,
+    bbi    : BasicBlock,
+    span   : Span,
+    target : BasicBlock
+) {
+    for loopb in &cfb.loops {
+        // Loop
+        if (span.contains(loopb.kw_cond_span) && loopb.block_span.hi() == span.hi()) {
+            prims.bbs.insert(bbi, CfaPrim::LoopDelimiter { then : target });
+            return;
+        }
+    }
+
+    // TODO: break
+
+    // TODO: continue
+
+    // rustc_errors::Diag::<()>::new(tcx.dcx(),
+    //     rustc_errors::Level::Error,
+    //     format!("{:?} goto {:?} ({:?})", bbi, target, span)
+    // ).with_span(span).emit();
+
+    prims.bbs.insert(bbi, CfaPrim::Sequence { exit : target });
 }
 
 

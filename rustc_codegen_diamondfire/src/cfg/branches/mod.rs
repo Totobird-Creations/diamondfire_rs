@@ -14,6 +14,7 @@ pub use stmt::*;
 pub struct CfBranches {
     pub loops   : Vec<CfLoopBranch>,
     pub whiles  : Vec<CfLoopBranch>,
+    pub fors    : Vec<CfLoopBranch>,
     pub ifs     : Vec<CfIfBranch>,
     pub matches : Vec<CfMatchBranch>
 }

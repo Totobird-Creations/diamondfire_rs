@@ -55,7 +55,8 @@ pub enum CfrTreeGroup {
         thens : Vec<CfrTree>
     },
     Return,
-    Unreachable
+    Unreachable,
+    Error
 }
 impl Display for CfrTreeGroup {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
@@ -98,7 +99,8 @@ impl CfrTreeGroup {
                 write!(f, "}}")?;
             },
             Self::Return      => { write!(f, "return")?; },
-            Self::Unreachable => { write!(f, "unreachable")?; }
+            Self::Unreachable => { write!(f, "unreachable")?; },
+            Self::Error       => { write!(f, "error")?; }
         }
         Ok(())
     }
@@ -205,6 +207,10 @@ fn recover_cfg_node(
         CfaPrim::Unreachable => {
             tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::Unreachable)
+        },
+
+        CfaPrim::Error => {
+            tree.push(CfrTreeGroup::Error)
         }
 
     }

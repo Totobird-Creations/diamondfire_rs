@@ -164,43 +164,43 @@ use diamondfire::*;
 // }
 
 
-fn while_breaks(mut x : u64) {
-    // bb0
-    let mut y = 100;
-    while (
-        // bb1
-        y > 50
-    ) {
-        // bb2
-        if (x % 2 == 0) {
-            // bb3
-            y /= 2;
-            if (x == 0) {
-                // bb4
-                break; // => bb11
-            } else {
-                // bb5
-                y += 1;
-            }
-        } else {
-            // bb6
-            y = y * 3 + 1;
-            if (x < 2) {
-                // bb7
-                break; // => bb11
-            } else {
-                // bb8
-                y -= 1;
-            }
-        }
-        // bb9
-        x -= 1;
-    } // exit { bb10 }
-    // bb11
-    // bb12
-    y += 1;
-    // return
-}
+// fn while_breaks(mut x : u64) {
+//     // bb0
+//     let mut y = 100;
+//     while (
+//         // bb1
+//         y > 50
+//     ) {
+//         // bb2
+//         if (x % 2 == 0) {
+//             // bb3
+//             y /= 2;
+//             if (x == 0) {
+//                 // bb4
+//                 break; // => bb11
+//             } else {
+//                 // bb5
+//                 y += 1;
+//             }
+//         } else {
+//             // bb6
+//             y = y * 3 + 1;
+//             if (x < 2) {
+//                 // bb7
+//                 break; // => bb11
+//             } else {
+//                 // bb8
+//                 y -= 1;
+//             }
+//         }
+//         // bb9
+//         x -= 1;
+//     } // exit { bb10 }
+//     // bb11
+//     // bb12
+//     y += 1;
+//     // return
+// }
 
 
 // fn loop_breaks(mut x : u64) {
@@ -238,8 +238,12 @@ fn while_breaks(mut x : u64) {
 // }
 
 
-// fn for_loops(mut x : u64) {
-//     for i in 1..x {
-//         x /= i;
-//     }
-// }
+fn for_loops(mut x : u64) {
+    // bb0
+    let iter = 1..x;
+    for i in iter { // for ( bb1; bb2; bb3; )
+        // bb5+7
+        x /= i;
+    }
+    // bb6
+}

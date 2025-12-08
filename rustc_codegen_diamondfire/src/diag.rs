@@ -13,6 +13,13 @@ pub fn disallowed_post_drop_elaboration() {
     unreachable!("disallowed after drop elaboration")
 }
 
+pub fn no_inline_mir_missing(dcx : DiagCtxtHandle<'_>, span : Span) {
+    Diag::<ErrorGuaranteed>::new(dcx,
+        Level::Error,
+        "the `diamondfire-unknown-unknown` target requires `RUSTFLAGS=\"-Zinline-mir=no\"`"
+    ).with_span(span).emit();
+}
+
 pub fn unwinding_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
     Diag::<ErrorGuaranteed>::new(dcx,
         Level::Error,
@@ -32,13 +39,4 @@ pub fn inlineasm_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
         Level::Error,
         "inline assembly is unsupported by the `diamondfire-unknown-unknown` target"
     ).with_span(span).emit();
-}
-
-pub fn missing_switch(dcx : DiagCtxtHandle<'_>, span : Span) {
-    Diag::<ErrorGuaranteed>::new(dcx,
-        Level::Error,
-        "undiscovered branch"
-    ).with_span(span)
-        .with_help("the `diamondfire-unknown-unknown` target requires `RUSTFLAGS=\"-Zinline-mir=no\"`")
-        .emit();
 }

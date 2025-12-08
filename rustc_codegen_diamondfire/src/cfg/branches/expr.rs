@@ -82,7 +82,7 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
         (match (source) {
             LoopSource::Loop    => { &mut branches.loops },
             LoopSource::While   => { &mut branches.whiles },
-            LoopSource::ForLoop => todo!()
+            LoopSource::ForLoop => { &mut branches.fors }
         }).push(CfLoopBranch { kw_cond_span : span, block_span : block.span });
         find_block_cfb(tcx, branches, block);
     },
