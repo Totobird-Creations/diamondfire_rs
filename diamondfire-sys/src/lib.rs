@@ -1,6 +1,9 @@
-#![allow(unexpected_cfgs)]
+//! TODO: Doc comment
 
-#![feature(core_intrinsics)]
+
+#![allow(unexpected_cfgs)]
+#![forbid(missing_docs)]
+
 #![cfg_attr(doc, feature(doc_cfg))]
 #![cfg_attr(doc, doc(cfg(target_os = "diamondfire")))]
 #![no_std]
@@ -21,13 +24,22 @@ mod ty;
 pub use ty::*;
 
 unsafe extern "C" {
+
+    /// Creates a new local (`LINE`) variable by name, returning a pointer to it.
     pub unsafe fn DF_VAR__NewLocal(name : df_string) -> *mut df_opaque;
+
+    /// Creates a new thread-local (`LOCAL`) variable by name, returning a pointer to it.
     pub unsafe fn DF_VAR__NewThreadLocal(name : df_string) -> *mut df_opaque;
+
+    /// Creates a new session (`GAME`) variable by name, returning a pointer to it.
     pub unsafe fn DF_VAR__NewSession(name : df_string) -> *mut df_opaque;
+
+    /// Creates a new persistent (`SAVE`) variable by name, returning a pointer to it.
     pub unsafe fn DF_VAR__NewPersistent(name : df_string) -> *mut df_opaque;
+
+    /// Returns the name of the variable behind a pointer.
     pub unsafe fn DF_VAR__NameOf(ptr : *mut df_opaque) -> df_string;
 }
 
-#[forbid(missing_docs)]
 mod generated;
 pub use generated::*;

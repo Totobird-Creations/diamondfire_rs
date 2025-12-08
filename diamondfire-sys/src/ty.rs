@@ -1,6 +1,3 @@
-use core::intrinsics::transmute_unchecked;
-
-
 /// An untyped DiamondFire value.
 ///
 /// This type is 'opaque'. No assumptions should be made about the it or any underlying data.
@@ -18,77 +15,77 @@ impl df_opaque {
     /// ## Safety
     /// The underlying value must be a DiamondFire `String`.
     #[inline(always)]
-    pub unsafe fn assume_string_unchecked(self) -> df_string { unsafe { transmute_unchecked::<df_opaque, df_string>(self) } }
+    pub unsafe fn assume_string_unchecked(self) -> df_string { unsafe { DF_TRANSMUTE__df_opaque__df_string(self) } }
 
     /// Assumes that this value is a DiamondFire `Styled Text` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Styled Text`.
     #[inline(always)]
-    pub unsafe fn assume_text_unchecked(self) -> df_text { unsafe { transmute_unchecked::<df_opaque, df_text>(self) } }
+    pub unsafe fn assume_text_unchecked(self) -> df_text { unsafe { DF_TRANSMUTE__df_opaque__df_text(self) } }
 
     /// Assumes that this value is a DiamondFire `Number` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Number`.
     #[inline(always)]
-    pub unsafe fn assume_number_unchecked(self) -> df_number { unsafe { transmute_unchecked::<df_opaque, df_number>(self) } }
+    pub unsafe fn assume_number_unchecked(self) -> df_number { unsafe { DF_TRANSMUTE__df_opaque__df_number(self) } }
 
     /// Assumes that this value is a DiamondFire `Location` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Location`.
     #[inline(always)]
-    pub unsafe fn assume_location_unchecked(self) -> df_location { unsafe { transmute_unchecked::<df_opaque, df_location>(self) } }
+    pub unsafe fn assume_location_unchecked(self) -> df_location { unsafe { DF_TRANSMUTE__df_opaque__df_location(self) } }
 
     /// Assumes that this value is a DiamondFire `Vector` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Vector`.
     #[inline(always)]
-    pub unsafe fn assume_vector_unchecked(self) -> df_vector { unsafe { transmute_unchecked::<df_opaque, df_vector>(self) } }
+    pub unsafe fn assume_vector_unchecked(self) -> df_vector { unsafe { DF_TRANSMUTE__df_opaque__df_vector(self) } }
 
     /// Assumes that this value is a DiamondFire `Sound` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Sound`.
     #[inline(always)]
-    pub unsafe fn assume_sound_unchecked(self) -> df_sound { unsafe { transmute_unchecked::<df_opaque, df_sound>(self) } }
+    pub unsafe fn assume_sound_unchecked(self) -> df_sound { unsafe { DF_TRANSMUTE__df_opaque__df_sound(self) } }
 
     /// Assumes that this value is a DiamondFire `Particle` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Particle`.
     #[inline(always)]
-    pub unsafe fn assume_particle_unchecked(self) -> df_particle { unsafe { transmute_unchecked::<df_opaque, df_particle>(self) } }
+    pub unsafe fn assume_particle_unchecked(self) -> df_particle { unsafe { DF_TRANSMUTE__df_opaque__df_particle(self) } }
 
     /// Assumes that this value is a DiamondFire `Potion` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Potion`.
     #[inline(always)]
-    pub unsafe fn assume_potion_unchecked(self) -> df_potion { unsafe { transmute_unchecked::<df_opaque, df_potion>(self) } }
+    pub unsafe fn assume_potion_unchecked(self) -> df_potion { unsafe { DF_TRANSMUTE__df_opaque__df_potion(self) } }
 
     /// Assumes that this value is a DiamondFire `Item` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Item`.
     #[inline(always)]
-    pub unsafe fn assume_item_unchecked(self) -> df_item { unsafe { transmute_unchecked::<df_opaque, df_item>(self) } }
+    pub unsafe fn assume_item_unchecked(self) -> df_item { unsafe { DF_TRANSMUTE__df_opaque__df_item(self) } }
 
     /// Assumes that this value is a DiamondFire `List` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `List`.
     #[inline(always)]
-    pub unsafe fn assume_list_unchecked(self) -> df_list { unsafe { transmute_unchecked::<df_opaque, df_list>(self) } }
+    pub unsafe fn assume_list_unchecked(self) -> df_list { unsafe { DF_TRANSMUTE__df_opaque__df_list(self) } }
 
     /// Assumes that this value is a DiamondFire `Dictionary` without checking.
     ///
     /// ## Safety
     /// The underlying value must be a DiamondFire `Dictionary`.
     #[inline(always)]
-    pub unsafe fn assume_dict_unchecked(self) -> df_dict { unsafe { transmute_unchecked::<df_opaque, df_dict>(self) } }
+    pub unsafe fn assume_dict_unchecked(self) -> df_dict { unsafe { DF_TRANSMUTE__df_opaque__df_dictionary(self) } }
 
 }
 
@@ -114,11 +111,11 @@ impl df_string {
     /// Converts an `&str` to a DiamondFire `String`.
     #[expect(clippy::should_implement_trait)]
     #[inline(always)]
-    pub fn from_str(s : &str) -> Self { unsafe { transmute_unchecked::<&str, df_opaque>(s).assume_string_unchecked() } }
+    pub fn from_str(s : &str) -> Self { DF_TRANSMUTE__str__df_string(s) }
 
     /// Returns `self` as an `&'static str`.
     #[inline(always)]
-    pub fn into_str(self) -> &'static str { unsafe { transmute_unchecked::<df_opaque, &str>(self._opaque) } }
+    pub fn into_str(self) -> &'static str { DF_TRANSMUTE__df_string__str(self) }
 
 }
 
@@ -162,22 +159,22 @@ impl df_number {
 
     /// Converts an `f64` to a DiamondFire `String`.
     #[inline(always)]
-    pub fn from_f64(v : f64) -> Self { unsafe { transmute_unchecked::<f64, df_opaque>(v).assume_number_unchecked() } }
+    pub fn from_f64(x : f64) -> Self { DF_TRANSMUTE__f64__df_number(x) }
 
     /// Returns `self` as an `f64`.
     #[inline(always)]
-    pub fn into_f64(self) -> f64 { unsafe { transmute_unchecked::<df_opaque, f64>(self._opaque) } }
+    pub fn into_f64(self) -> f64 { DF_TRANSMUTE__df_number__f64(self) }
 
     /// Converts an `i64` to a DiamondFire `String`.
     #[inline(always)]
-    pub fn from_i64(v : i64) -> Self { unsafe { transmute_unchecked::<i64, df_opaque>(v).assume_number_unchecked() } }
+    pub fn from_i64(x : i64) -> Self { DF_TRANSMUTE__i64__df_number(x) }
 
     /// Returns `self` as an `i64`.
     ///
     /// ## Safety
     /// The underlying value must be an integer (`self.fract() == 0.0`).
     #[inline(always)]
-    pub unsafe fn into_i64(self) -> i64 { unsafe { transmute_unchecked::<df_opaque, i64>(self._opaque) } }
+    pub unsafe fn into_i64(self) -> i64 { unsafe { DF_TRANSMUTE__df_number__i64(self) } }
 
 }
 
@@ -331,4 +328,97 @@ impl df_dict {
     /// This does not change the underlying value in any way.
     #[inline(always)]
     pub fn into_opaque(self) -> df_opaque { self._opaque }
+}
+
+
+unsafe extern "C" {
+
+    /// Assumes that the given value is a DiamondFire `String` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `String`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_string(x : df_opaque) -> df_string;
+
+    /// Assumes that the given value is a DiamondFire `Styled Text` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Styled Text`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_text(x : df_opaque) -> df_text;
+
+    /// Assumes that the given value is a DiamondFire `Number` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Number`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_number(x : df_opaque) -> df_number;
+
+    /// Assumes that the given value is a DiamondFire `Location` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Location`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_location(x : df_opaque) -> df_location;
+
+    /// Assumes that the given value is a DiamondFire `Vector` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Vector`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_vector(x : df_opaque) -> df_vector;
+
+    /// Assumes that the given value is a DiamondFire `Sound` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Sound`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_sound(x : df_opaque) -> df_sound;
+
+    /// Assumes that the given value is a DiamondFire `Particle` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Particle`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_particle(x : df_opaque) -> df_particle;
+
+    /// Assumes that the given value is a DiamondFire `Potion` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Potion`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_potion(x : df_opaque) -> df_potion;
+
+    /// Assumes that the given value is a DiamondFire `Item` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Item`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_item(x : df_opaque) -> df_item;
+
+    /// Assumes that the given value is a DiamondFire `List` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `List`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_list(x : df_opaque) -> df_list;
+
+    /// Assumes that the given value is a DiamondFire `Dictionary` without checking.
+    ///
+    /// ## Safety
+    /// The underlying value must be a DiamondFire `Dictionary`.
+    pub unsafe fn DF_TRANSMUTE__df_opaque__df_dictionary(x : df_opaque) -> df_dict;
+
+
+    /// Converts a `&str` into a DiamondFire `String`.
+    pub safe fn DF_TRANSMUTE__str__df_string(x : &str) -> df_string;
+
+    /// Converts a `&str` into a DiamondFire `String`.
+    pub safe fn DF_TRANSMUTE__df_string__str(x : df_string) -> &'static str;
+
+    /// Converts an `f64` into a DiamondFire `Number`.
+    pub safe fn DF_TRANSMUTE__f64__df_number(x : f64) -> df_number;
+
+    /// Converts a DiamondFire `Number` into an `f64`.
+    pub safe fn DF_TRANSMUTE__df_number__f64(x : df_number) -> f64;
+
+    /// Converts an `i64` into a DiamondFire `Number`.
+    pub safe fn DF_TRANSMUTE__i64__df_number(x : i64) -> df_number;
+
+    /// Converts a DiamondFire `Number` into an `i64`.
+    ///
+    /// ## Safety
+    /// The underlying value must be an integer (`x.fract() == 0.0`).
+    pub unsafe fn DF_TRANSMUTE__df_number__i64(x : df_number) -> i64;
+
 }
