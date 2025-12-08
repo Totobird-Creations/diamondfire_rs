@@ -138,7 +138,9 @@ pub fn recover_cfg(
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum RecoveryScope {
     Any,
-    Loop(BasicBlock)
+    Loop {
+        then : BasicBlock
+    }
 }
 
 fn recover_cfg_node(
@@ -176,11 +178,11 @@ fn recover_cfg_node(
 
         CfaPrim::LoopDelimiter { then } => {
             tree.push(CfrTreeGroup::Block(bb));
-            if let Some(depth) = scopes.iter().position(|x| *x == RecoveryScope::Loop(*then)) {
+            if let Some(depth) = scopes.iter().position(|x| *x == RecoveryScope::Loop { then : *then }) {
                 assert_eq!(depth, scopes.len() - 1);
             } else {
                 until.push(*then);
-                scopes.push(RecoveryScope::Loop(*then));
+                scopes.push(RecoveryScope::Loop { then : *then });
                 tree.push(CfrTreeGroup::Loop {
                     then : recover_cfg_node(prims, *then, until, scopes)
                 });
