@@ -41,6 +41,10 @@ pub enum CfaPrim {
         then : BasicBlock,
         exit : BasicBlock
     },
+    For {
+        then : BasicBlock,
+        exit : BasicBlock
+    },
     Match {
         thens : Vec<BasicBlock>,
         exit  : Option<BasicBlock>
@@ -57,6 +61,7 @@ impl CfaPrim {
         Self::IfElse { exit, .. }  => *exit,
         Self::LoopDelimiter { .. } => None,
         Self::While { exit, .. }   => Some(*exit),
+        Self::For { exit, .. }     => Some(*exit),
         Self::Match { exit, .. }   => *exit,
         Self::Return               => None,
         Self::Unreachable          => None,
@@ -97,10 +102,15 @@ pub fn analyse_cfb<'tcx>(
                 for forb in &cfb.fors {
                     // For
                     if (forb.kw_cond_span.contains(term.source_info.span)) {
-                        rustc_errors::Diag::<()>::new(tcx.dcx(),
-                            rustc_errors::Level::Error,
-                            format!("{:?} -> {:?} for", bbi, targets.all_targets())
-                        ).with_span(forb.kw_cond_span).with_span_note(forb.block_span, "block").emit();
+                        let target_bbs  = targets.all_targets();
+                        let target_vals = targets.all_values();
+                        assert_eq!(target_vals.len(), 2); // then, exitt
+                        if (target_vals[0] == 0 && target_vals[1] == 1) {
+                            prims.bbs.insert(bbi, CfaPrim::For { then : target_bbs[1], exit : target_bbs[0] });
+                        } else if (target_vals[0] == 1 && target_vals[1] == 0) {
+                            prims.bbs.insert(bbi, CfaPrim::For { then : target_bbs[0], exit : target_bbs[1] });
+                        } else { unreachable!() }
+                        continue 'bb_loop;
                     }
                 }
 

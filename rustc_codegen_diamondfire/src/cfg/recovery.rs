@@ -51,6 +51,10 @@ pub enum CfrTreeGroup {
         cond : CfrTree,
         then : CfrTree
     },
+    For {
+        iter : CfrTree,
+        then : CfrTree
+    },
     Match {
         thens : Vec<CfrTree>
     },
@@ -87,6 +91,12 @@ impl CfrTreeGroup {
                 write!(f, "while (")?;
                 cond.fmt_indent(f, indent)?;
                 write!(f, ") ")?;
+                then.fmt_indent(f, indent)?;
+            },
+            Self::For { iter, then } => {
+                write!(f, "for ")?;
+                iter.fmt_indent(f, indent)?;
+                write!(f, " ")?;
                 then.fmt_indent(f, indent)?;
             },
             Self::Match { thens } => {
@@ -185,6 +195,18 @@ fn recover_cfg_node(
             scopes.push(RecoveryScope::Any);
             tree.push(CfrTreeGroup::While {
                 cond : CfrTree::bb(bb),
+                then : recover_cfg_node(prims, *then, until, scopes)
+            });
+            _ = scopes.pop();
+            _ = until.pop();
+            _ = until.pop();
+        },
+
+        CfaPrim::For { then, exit } => {
+            until.extend([bb, *exit,]);
+            scopes.push(RecoveryScope::Any);
+            tree.push(CfrTreeGroup::For {
+                iter : CfrTree::bb(bb),
                 then : recover_cfg_node(prims, *then, until, scopes)
             });
             _ = scopes.pop();
