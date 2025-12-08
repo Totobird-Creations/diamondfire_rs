@@ -79,13 +79,16 @@ pub fn analyse_cfb<'tcx>(
 
                 for loopb in &cfb.loops {
                     // Loop
-                    if (term.source_info.span.contains(loopb.kw_cond_span) && loopb.kw_cond_span.lo() == term.source_info.span.lo()) {
+                    if (term.source_info.span.contains(loopb.kw_cond_span) && loopb.block_span.hi() == term.source_info.span.hi()) {
                         prims.bbs.insert(bbi, CfaPrim::LoopDelimiter { then : *target });
                         continue 'bb_loop;
                     }
                 }
 
-                // rustc_errors::Diag::<()>::new(tcx.dcx(), rustc_errors::Level::Error, format!("{:?} goto", bbi)).with_span(term.source_info.span).emit();
+                rustc_errors::Diag::<()>::new(tcx.dcx(),
+                    rustc_errors::Level::Error,
+                    format!("{:?} goto {:?} ({:?})", bbi, target, term.source_info.span)
+                ).with_span(term.source_info.span).emit();
 
                 prims.bbs.insert(bbi, CfaPrim::Sequence { exit : *target });
                 continue 'bb_loop;

@@ -71,7 +71,7 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
     }
 
     ExprKind::Loop(block, label, source, span) => {
-        if (label.is_some()) { todo!() }
+        // TODO: label
         (match (source) {
             LoopSource::Loop    => { &mut branches.loops },
             LoopSource::While   => { &mut branches.whiles },

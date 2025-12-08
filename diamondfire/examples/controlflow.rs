@@ -77,7 +77,7 @@ use diamondfire::*;
 //             x /= 2;
 //         } else {
 //             // bb4
-//             x = x * 2 + 1;
+//             x = x * 3 + 1;
 //         }
 //         // bb5
 //     }
@@ -159,32 +159,87 @@ use diamondfire::*;
 // }
 
 
-fn inlining(mut x : u64) {
-    x = inlined(x);
+// fn inlining(mut x : u64) {
+//     x = inlined(x);
+// }
+
+
+fn while_breaks(mut x : u64) {
+    // bb0
+    let mut y = 100;
+    while (
+        // bb1
+        y > 50
+    ) {
+        // bb2
+        if (x % 2 == 0) {
+            // bb3
+            y /= 2;
+            if (x == 0) {
+                // bb4
+                break; // => bb11
+            } else {
+                // bb5
+                y += 1;
+            }
+        } else {
+            // bb6
+            y = y * 3 + 1;
+            if (x < 2) {
+                // bb7
+                break; // => bb11
+            } else {
+                // bb8
+                y -= 1;
+            }
+        }
+        // bb9
+        x -= 1;
+    } // exit { bb10 }
+    // bb11
+    // bb12
+    y += 1;
+    // return
 }
+
+
+// fn loop_breaks(mut x : u64) {
+//     // bb0
+//     let mut y = 100;
+//     loop {
+//         // bb1
+//         if (x % 2 == 0) {
+//             // bb2
+//             y /= 2;
+//             if (x == 0) {
+//                 // bb3
+//                 break;
+//             } else {
+//                 // bb4
+//                 y += 1;
+//             }
+//         } else {
+//             // bb5
+//             y = y * 3 + 1;
+//             if (x < 2) {
+//                 // bb6
+//                 break;
+//             } else {
+//                 // bb7
+//                 y -= 1;
+//             }
+//         }
+//         // bb8
+//         x -= 1;
+//     }
+//     // bb9
+//     y += 1;
+//     // return
+// }
 
 
 // fn for_loops(mut x : u64) {
 //     for i in 1..x {
 //         x /= i;
 //     }
-// }
-
-
-// fn increment_forever(mut x : u64) {
-//     let mut y = 10;
-//     'yl : loop {
-//         'xl: loop {
-//             x -= 1;
-//             if (y > 10) {
-//                 break 'yl;
-//             }
-//             if (x > 10) {
-//                 continue;
-//             }
-//             break;
-//         }
-//         y += 1;
-//     }
-//     x += 10;
 // }
