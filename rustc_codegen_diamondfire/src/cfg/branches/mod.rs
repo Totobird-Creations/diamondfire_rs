@@ -12,13 +12,15 @@ pub use stmt::*;
 
 #[derive(Debug, Default)]
 pub struct CfBranches {
-    pub whiles : Vec<CfWhileBranch>,
+    pub loops  : Vec<CfLoopBranch>,
+    pub whiles : Vec<CfLoopBranch>,
     pub ifs    : Vec<CfIfBranch>
 }
 
 #[derive(Debug)]
-pub struct CfWhileBranch {
-    pub kw_cond_span : Span
+pub struct CfLoopBranch {
+    pub kw_cond_span : Span,
+    pub block_span   : Span
 }
 
 #[derive(Debug)]

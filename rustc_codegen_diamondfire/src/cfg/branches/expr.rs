@@ -1,6 +1,6 @@
 use super::{
     CfBranches,
-    CfWhileBranch,
+    CfLoopBranch,
     CfIfBranch,
     find_block_cfb
 };
@@ -67,11 +67,11 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
     ExprKind::Loop(block, label, source, span) => {
         if (label.is_some()) { todo!() }
         match (source) {
-            LoopSource::Loop => todo!(),
+            LoopSource::Loop => {
+                branches.loops.push(CfLoopBranch { kw_cond_span : span, block_span : block.span });
+            },
             LoopSource::While => {
-                branches.whiles.push(CfWhileBranch {
-                    kw_cond_span : span
-                });
+                branches.whiles.push(CfLoopBranch { kw_cond_span : span, block_span : block.span });
             },
             LoopSource::ForLoop => todo!(),
         }

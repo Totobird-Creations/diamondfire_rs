@@ -44,9 +44,15 @@ pub enum CfrTreeGroup {
         then : CfrTree,
         els  : CfrTree
     },
+    Loop {
+        then : CfrTree
+    },
     While {
         cond : CfrTree,
         then : CfrTree
+    },
+    Continue {
+        depth : usize
     },
     Return,
     Unreachable
@@ -72,14 +78,19 @@ impl CfrTreeGroup {
                 write!(f, " else ")?;
                 els.fmt_indent(f, indent)?;
             },
+            Self::Loop { then } => {
+                write!(f, "loop ")?;
+                then.fmt_indent(f, indent)?;
+            },
             Self::While { cond, then } => {
                 write!(f, "while (")?;
                 cond.fmt_indent(f, indent)?;
                 write!(f, ") ")?;
                 then.fmt_indent(f, indent)?;
             },
-            Self::Return      => { write!(f, "return")?; },
-            Self::Unreachable => { write!(f, "unreachable")?; }
+            Self::Continue { depth } => { write!(f, "continue {}", depth)?; },
+            Self::Return             => { write!(f, "return")?; },
+            Self::Unreachable        => { write!(f, "unreachable")?; }
         }
         Ok(())
     }
@@ -101,14 +112,21 @@ impl CfrTree {
 pub fn recover_cfg(
     prims : &CfaPrims
 ) -> CfrTree {
-    recover_cfg_node(prims, BasicBlock::ZERO, &mut Vec::new())
+    recover_cfg_node(prims, BasicBlock::ZERO, &mut Vec::new(), &mut Vec::new())
 }
 
 
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+enum RecoveryScope {
+    Any,
+    Loop(BasicBlock)
+}
+
 fn recover_cfg_node(
-    prims : &CfaPrims,
-    bb    : BasicBlock,
-    until : &mut Vec<BasicBlock>
+    prims  : &CfaPrims,
+    bb     : BasicBlock,
+    until  : &mut Vec<BasicBlock>,
+    scopes : &mut Vec<RecoveryScope>
 ) -> CfrTree {
     let     prim = prims.bbs.get(&bb).unwrap();
     let mut tree = CfrTree::default();
@@ -122,7 +140,7 @@ fn recover_cfg_node(
             tree.push(CfrTreeGroup::Block(bb));
             until.push(*exit);
             tree.push(CfrTreeGroup::If {
-                then : recover_cfg_node(prims, *then, until)
+                then : recover_cfg_node(prims, *then, until, scopes)
             });
             _ = until.pop();
         },
@@ -130,7 +148,7 @@ fn recover_cfg_node(
         CfaPrim::IfDiverge { then } => {
             tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::If {
-                then : recover_cfg_node(prims, *then, until)
+                then : recover_cfg_node(prims, *then, until, scopes)
             });
         },
 
@@ -138,8 +156,8 @@ fn recover_cfg_node(
             tree.push(CfrTreeGroup::Block(bb));
             until.push(*exit);
             tree.push(CfrTreeGroup::IfElse {
-                then : recover_cfg_node(prims, *then, until),
-                els  : recover_cfg_node(prims, *els, until)
+                then : recover_cfg_node(prims, *then, until, scopes),
+                els  : recover_cfg_node(prims, *els, until, scopes)
             });
             _ = until.pop();
         },
@@ -147,17 +165,34 @@ fn recover_cfg_node(
         CfaPrim::IfElseDiverge { then, els } => {
             tree.push(CfrTreeGroup::Block(bb));
             tree.push(CfrTreeGroup::IfElse {
-                then : recover_cfg_node(prims, *then, until),
-                els  : recover_cfg_node(prims, *els, until)
+                then : recover_cfg_node(prims, *then, until, scopes),
+                els  : recover_cfg_node(prims, *els, until, scopes)
             });
+        },
+
+        CfaPrim::LoopDelimiter { then } => {
+            tree.push(CfrTreeGroup::Block(bb));
+            if let Some(depth) = scopes.iter().position(|x| *x == RecoveryScope::Loop(*then)) {
+                assert_eq!(depth, scopes.len() - 1);
+            } else {
+                until.push(*then);
+                scopes.push(RecoveryScope::Loop(*then));
+                tree.push(CfrTreeGroup::Loop {
+                    then : recover_cfg_node(prims, *then, until, scopes)
+                });
+                _ = scopes.pop();
+                _ = until.pop();
+            }
         },
 
         CfaPrim::While { then, exit } => {
             until.extend([bb, *exit,]);
+            scopes.push(RecoveryScope::Any);
             tree.push(CfrTreeGroup::While {
                 cond : CfrTree::bb(bb),
-                then : recover_cfg_node(prims, *then, until)
+                then : recover_cfg_node(prims, *then, until, scopes)
             });
+            _ = scopes.pop();
             _ = until.pop();
             _ = until.pop();
         },
@@ -174,7 +209,7 @@ fn recover_cfg_node(
 
     }
     if let Some(exit) = prim.exit() && (! until.contains(&exit)) {
-        tree.append(&mut recover_cfg_node(prims, exit, until));
+        tree.append(&mut recover_cfg_node(prims, exit, until, scopes));
     }
     tree
 }
