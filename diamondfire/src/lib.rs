@@ -1,6 +1,9 @@
 #![warn(missing_docs)]
 
-#![feature(core_intrinsics)]
+#![feature(
+    core_intrinsics,
+    decl_macro
+)]
 #![no_std]
 
 #[doc(hidden)]
@@ -8,6 +11,8 @@ extern crate self as __private_diamondfire;
 #[doc(hidden)]
 pub use diamondfire_macros as __private_diamondfire_macros;
 
+
+pub mod debug;
 
 // TODO: text
 
@@ -50,6 +55,7 @@ pub mod std;
 
 /// Common types and functions.
 pub mod prelude {
+    pub use super::debug::println;
     pub use super::vec3::Vec3;
     pub use super::std;
 }

@@ -63,7 +63,9 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
         find_expr_cfb(tcx, branches, b);
     },
 
-    ExprKind::Let(_) => todo!(),
+    ExprKind::Let(expr) => {
+        find_expr_cfb(tcx, branches, expr.init);
+    },
 
     ExprKind::If(cond, then, els) => {
         branches.ifs.push(CfIfBranch {

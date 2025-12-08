@@ -65,27 +65,6 @@ use diamondfire::*;
 // }
 
 
-// fn collatz_conjecture(mut x : u64) {
-//     // bb0
-//     while (
-//         // bb1
-//         x > 1
-//     ) {
-//         // bb2
-//         if (x % 2 == 0) {
-//             // bb3
-//             x /= 2;
-//         } else {
-//             // bb4
-//             x = x * 3 + 1;
-//         }
-//         // bb5
-//     }
-//     // bb6
-//     // return
-// }
-
-
 // fn simple_loop(mut x : u64) {
 //     // bb0
 //     loop {
@@ -250,21 +229,21 @@ use diamondfire::*;
 // }
 
 
-fn nested_for_loops(mut size : u64) -> u64 {
-    // bb0
-    let mut out = 0;
-    let y_iter = 0..size;
-    // bb1
-    for y in y_iter { // for ( bb2; bb3 )
-        // bb5
-        let x_iter = 0..y;
-        for x in x_iter { // bb7; for ( bb8; bb9 )
-            // bb10
-            out += x*y;
-        } // unreachable { bb4 }
-        // bb11
-    } // unreachable { bb4 }
-    // bb6
-    // return
-    out
-}
+// fn nested_for_loops(mut size : u64) -> u64 {
+//     // bb0
+//     let mut out = 0;
+//     let y_iter = 0..size;
+//     // bb1
+//     for y in y_iter { // for ( bb2; bb3 )
+//         // bb5
+//         let x_iter = 0..y;
+//         for x in x_iter { // bb7; for ( bb8; bb9 )
+//             // bb10
+//             out += x*y;
+//         } // unreachable { bb4 }
+//         // bb11
+//     } // unreachable { bb4 }
+//     // bb6
+//     // return
+//     out
+// }

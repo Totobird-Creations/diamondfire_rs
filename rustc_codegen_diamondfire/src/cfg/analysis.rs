@@ -160,6 +160,8 @@ pub fn analyse_cfb<'tcx>(
                     }
                 }
 
+                rustc_errors::Diag::<()>::new(tcx.dcx(), rustc_errors::Level::Error, "no branch handler (ICE)")
+                    .with_span(term.source_info.span).emit();
                 panic!("no branch handler");
             },
 
