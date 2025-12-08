@@ -53,3 +53,13 @@ pub mod prelude {
     pub use super::vec3::Vec3;
     pub use super::std;
 }
+
+
+#[inline(always)]
+pub fn inlined(x : u64) -> u64 { // TODO: Remove
+    if (x > 10) {
+        x / 2
+    } else {
+        x * 2
+    }
+}

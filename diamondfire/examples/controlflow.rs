@@ -130,33 +130,45 @@ use diamondfire::*;
 // }
 
 
-fn simple_match(mut x : u64) {
-    // bb0
-    match (x) {
-        1 => {
-            // bb4
-            x += 10;
-        },
-        2 => {
-            // bb3
-            x -= 2;
-        },
-        3 => {
-            // bb2
-            x *= 5;
-        },
-        4 => {
-            // bb5
-            x /= 3;
-        },
-        _ => {
-            // bb1
-            x = 999;
-        }
-    }
-    // bb6
-    // return
+// fn simple_match(mut x : u64) {
+//     // bb0
+//     match (x) {
+//         1 => {
+//             // bb4
+//             x += 10;
+//         },
+//         2 => {
+//             // bb3
+//             x -= 2;
+//         },
+//         3 => {
+//             // bb2
+//             x *= 5;
+//         },
+//         4 => {
+//             // bb5
+//             x /= 3;
+//         },
+//         _ => {
+//             // bb1
+//             x = 999;
+//         }
+//     }
+//     // bb6
+//     // return
+// }
+
+
+fn inlining(mut x : u64) {
+    x = inlined(x);
 }
+
+
+// fn for_loops(mut x : u64) {
+//     for i in 1..x {
+//         x /= i;
+//     }
+// }
 
 
 // fn increment_forever(mut x : u64) {

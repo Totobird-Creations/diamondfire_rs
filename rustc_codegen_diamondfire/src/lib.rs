@@ -84,8 +84,7 @@ impl CodegenBackend for DiamondfireCodegen {
             return Box::new(CrateToJoin { crate_info });
         }
 
-        let module_items = tcx.hir_crate_items(());
-        for item_id in module_items.free_items() {
+        for item_id in tcx.hir_crate_items(()).free_items() {
             let item = tcx.hir_item(item_id);
             match (item.kind) {
                 ItemKind::ExternCrate(_, _,) => { },
@@ -101,8 +100,12 @@ impl CodegenBackend for DiamondfireCodegen {
                         todo!();
                     }
                     let instance = Instance::mono(tcx, def_id);
-                    let hir       = tcx.hir_body(body);
-                    let mir       = tcx.optimized_mir(def_id);
+                    let hir      = tcx.hir_body(body);
+                    let mir      = tcx.optimized_mir(def_id);
+                    // for scope in mir.source_scopes.iter() { if let Some((inlined, _,)) = &scope.inlined {
+                    //     rustc_hir::BodyId { hir_id : rustc_hir::HirId { owner : inlined.def_id(). } }
+                    //     // println!("{:?}", tcx.hir_body());
+                    // } }
                     println!();
                     for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
                         println!("bb{:?}:", bbi);
