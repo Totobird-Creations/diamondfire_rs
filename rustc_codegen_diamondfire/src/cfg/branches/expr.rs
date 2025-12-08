@@ -20,22 +20,40 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
     ExprKind::ConstBlock(_)
     | ExprKind::Lit(_)
     | ExprKind::Path(_)
+    | ExprKind::InlineAsm(_)
+    | ExprKind::OffsetOf(_, _)
     => { },
 
-    ExprKind::Array(_) => todo!(),
+    ExprKind::Array(values)
+    | ExprKind::Tup(values)
+    => {
+        for value in values {
+            find_expr_cfb(tcx, branches, value);
+        }
+    },
 
-    ExprKind::Call(func, args) => {
+    ExprKind::Call(func, args)
+    | ExprKind::MethodCall(_, func, args, _)
+    => {
         find_expr_cfb(tcx, branches, func);
         for section in args {
             find_expr_cfb(tcx, branches, section);
         }
     },
 
-    ExprKind::MethodCall(_, _, _, _) => todo!(),
-
-    ExprKind::Use(_, _) => todo!(),
-
-    ExprKind::Tup(_) => todo!(),
+    ExprKind::Use(value, _)
+    | ExprKind::Unary(_, value)
+    | ExprKind::Cast(value, _)
+    | ExprKind::Type(value, _)
+    | ExprKind::DropTemps(value)
+    | ExprKind::AddrOf(_, _, value)
+    | ExprKind::Become(value)
+    | ExprKind::Repeat(value, _)
+    | ExprKind::Yield(value, _)
+    | ExprKind::UnsafeBinderCast(_, value, _)
+    => {
+        find_expr_cfb(tcx, branches, value);
+    },
 
     ExprKind::Binary(_, a, b)
     | ExprKind::Assign(a, b, _)
@@ -43,17 +61,6 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
     => {
         find_expr_cfb(tcx, branches, a);
         find_expr_cfb(tcx, branches, b);
-    },
-
-    ExprKind::Unary(_, _) => todo!(),
-
-    ExprKind::Cast(_, _) => todo!(),
-
-    ExprKind::Type(_, _) => todo!(),
-
-    ExprKind::DropTemps(value)
-    | ExprKind::AddrOf(_, _, value) => {
-        find_expr_cfb(tcx, branches, value);
     },
 
     ExprKind::Let(_) => todo!(),
@@ -105,9 +112,12 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
         find_block_cfb(tcx, branches, block);
     },
 
-    ExprKind::Field(_, _) => todo!(),
+    ExprKind::Field(base, _) => { find_expr_cfb(tcx, branches, base); },
 
-    ExprKind::Index(_, _, _) => todo!(),
+    ExprKind::Index(base, index, _) => {
+        { find_expr_cfb(tcx, branches, base); }
+        { find_expr_cfb(tcx, branches, index); }
+    },
 
     ExprKind::Break(dest, value,) => {
         if (dest.label.is_some()) { todo!() }
@@ -126,29 +136,17 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
         }
     },
 
-    ExprKind::Become(_) => todo!(),
-
-    ExprKind::InlineAsm(_) => todo!(),
-
-    ExprKind::OffsetOf(_, _) => todo!(),
-
     ExprKind::Struct(_, fields, tail) => {
         for field in fields {
             find_expr_cfb(tcx, branches, field.expr);
         }
         match (tail) {
-            StructTailExpr::None              => { },
-            StructTailExpr::Base(expr)        => { find_expr_cfb(tcx, branches, expr); },
-            StructTailExpr::DefaultFields(..) => todo!(),
+            StructTailExpr::None             => { },
+            StructTailExpr::Base(expr)       => { find_expr_cfb(tcx, branches, expr); },
+            StructTailExpr::DefaultFields(_) => { },
         }
     },
 
-    ExprKind::Repeat(_, _) => todo!(),
-
-    ExprKind::Yield(_, _) => todo!(),
-
-    ExprKind::UnsafeBinderCast(_, _, _) => todo!(),
-
-    ExprKind::Err(_) => todo!()
+    ExprKind::Err(_) => unreachable!()
 
 } }

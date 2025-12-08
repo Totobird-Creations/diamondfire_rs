@@ -85,6 +85,10 @@ pub fn analyse_cfb<'tcx>(
                     }
                 }
 
+                // TODO: break
+
+                // TODO: continue
+
                 rustc_errors::Diag::<()>::new(tcx.dcx(),
                     rustc_errors::Level::Error,
                     format!("{:?} goto {:?} ({:?})", bbi, target, term.source_info.span)
@@ -105,6 +109,8 @@ pub fn analyse_cfb<'tcx>(
                         continue 'bb_loop;
                     }
                 }
+
+                // TOOD: for
 
                 for ifb in &cfb.ifs {
                     if (ifb.cond_span == term.source_info.span) {

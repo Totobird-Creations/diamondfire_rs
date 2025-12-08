@@ -1,7 +1,6 @@
 [build]
 target    = "../diamondfire-unknown-unknown.json"
 rustflags = [
-    "-Zno-steal-thir",
     "-Zinline-mir=no"
 ]
 
