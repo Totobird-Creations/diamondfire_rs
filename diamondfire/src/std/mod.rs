@@ -7,22 +7,16 @@ use core::{
 };
 
 
-// TODO: collections::HashMap
-// TODO: string::String
-// TODO: string::ToString
-// TODO: sync::Arc
-// TODO: sync::Mutex
-// TODO: sync::RwLock
-// TODO: thread::sleep
-// TODO: thread::spawn
-// TODO: thread::yield_now
-// TODO: time::Instant
-// TODO: time::UNIX_EPOCH
-// TODO: vec::Vec
+#[cfg(feature = "allocator")]
+pub mod alloc;
+#[cfg(feature = "allocator")]
+pub mod boxed;
 
 
 /// Common types and functions.
 pub mod prelude {
+    #[cfg(feature = "allocator")]
+    pub use super::boxed;
 }
 
 
