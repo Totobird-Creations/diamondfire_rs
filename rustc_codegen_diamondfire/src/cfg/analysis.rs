@@ -2,6 +2,7 @@ use crate::diag;
 use super::{
     CfBranches
 };
+use core::assert_matches::assert_matches;
 use std::collections::BTreeMap;
 use rustc_middle::{
     mir::{
@@ -41,6 +42,9 @@ pub enum CfaPrim {
         then : BasicBlock,
         exit : BasicBlock
     },
+    ForIter {
+        iter : BasicBlock
+    },
     For {
         then : BasicBlock,
         exit : BasicBlock
@@ -61,6 +65,7 @@ impl CfaPrim {
         Self::IfElse { exit, .. }  => *exit,
         Self::LoopDelimiter { .. } => None,
         Self::While { exit, .. }   => Some(*exit),
+        Self::ForIter { .. }       => None,
         Self::For { exit, .. }     => Some(*exit),
         Self::Match { exit, .. }   => *exit,
         Self::Return               => None,
@@ -84,7 +89,7 @@ pub fn analyse_cfb<'tcx>(
         match (&term.kind) {
 
             TerminatorKind::Goto { target } => {
-                analyse_cfb_goto(&mut prims, tcx, cfb, bbi, term.source_info.span, *target);
+                analyse_cfb_goto(&mut prims, tcx, cfb, bbs, bbi, term.source_info.span, *target);
             },
 
             TerminatorKind::SwitchInt { targets, .. } => {
@@ -104,7 +109,8 @@ pub fn analyse_cfb<'tcx>(
                     if (forb.kw_cond_span.contains(term.source_info.span)) {
                         let target_bbs  = targets.all_targets();
                         let target_vals = targets.all_values();
-                        assert_eq!(target_vals.len(), 2); // then, exitt
+                        assert_eq!(target_vals.len(), 2); // then, exit
+                        assert_matches!(bbs.get(targets.otherwise()).unwrap().terminator().kind, TerminatorKind::Unreachable);
                         if (target_vals[0] == 0 && target_vals[1] == 1) {
                             prims.bbs.insert(bbi, CfaPrim::For { then : target_bbs[1], exit : target_bbs[0] });
                         } else if (target_vals[0] == 1 && target_vals[1] == 0) {
@@ -183,7 +189,7 @@ pub fn analyse_cfb<'tcx>(
                     diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
                 }
                 if let Some(target) = target {
-                    analyse_cfb_goto(&mut prims, tcx, cfb, bbi, term.source_info.span, *target);
+                    analyse_cfb_goto(&mut prims, tcx, cfb, bbs, bbi, term.source_info.span, *target);
                 } else {
                     prims.bbs.insert(bbi, CfaPrim::Unreachable);
                 }
@@ -195,7 +201,7 @@ pub fn analyse_cfb<'tcx>(
                 if (! (*unwind == UnwindAction::Continue || *unwind == UnwindAction::Unreachable)) {
                     diag::unwinding_unsupported(tcx.dcx(), term.source_info.span);
                 }
-                analyse_cfb_goto(&mut prims, tcx, cfb, bbi, term.source_info.span, *target);
+                analyse_cfb_goto(&mut prims, tcx, cfb, bbs, bbi, term.source_info.span, *target);
             },
 
             TerminatorKind::Yield { .. }
@@ -218,10 +224,19 @@ pub fn analyse_cfb_goto<'tcx>(
     prims  : &mut CfaPrims,
     tcx    : TyCtxt<'tcx>,
     cfb    : &CfBranches,
+    bbs    : &BasicBlocks,
     bbi    : BasicBlock,
     span   : Span,
     target : BasicBlock
 ) {
+    let target_span = bbs.get(target).unwrap().terminator().source_info.span;
+    for forb in &cfb.fors {
+        if (forb.kw_cond_span.contains(span) && forb.kw_cond_span.contains(target_span)) {
+            prims.bbs.insert(bbi, CfaPrim::ForIter { iter : target });
+            return;
+        }
+    }
+
     for loopb in &cfb.loops {
         // Loop
         if (span.contains(loopb.kw_cond_span) && loopb.block_span.hi() == span.hi()) {

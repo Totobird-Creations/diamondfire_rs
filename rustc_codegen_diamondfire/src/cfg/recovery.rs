@@ -52,8 +52,9 @@ pub enum CfrTreeGroup {
         then : CfrTree
     },
     For {
-        iter : CfrTree,
-        then : CfrTree
+        next   : BasicBlock,
+        switch : BasicBlock,
+        then   : CfrTree
     },
     Match {
         thens : Vec<CfrTree>
@@ -93,10 +94,8 @@ impl CfrTreeGroup {
                 write!(f, ") ")?;
                 then.fmt_indent(f, indent)?;
             },
-            Self::For { iter, then } => {
-                write!(f, "for ")?;
-                iter.fmt_indent(f, indent)?;
-                write!(f, " ")?;
+            Self::For { next, switch, then } => {
+                write!(f, "for (bb{}; bb{};) ", next.index(), switch.index())?;
                 then.fmt_indent(f, indent)?;
             },
             Self::Match { thens } => {
@@ -202,17 +201,22 @@ fn recover_cfg_node(
             _ = until.pop();
         },
 
-        CfaPrim::For { then, exit } => {
-            until.extend([bb, *exit,]);
+        CfaPrim::ForIter { iter } => {
+            let CfaPrim::For { then, exit } = prims.bbs.get(iter).unwrap() else { unreachable!() };
             scopes.push(RecoveryScope::Any);
+            until.extend([bb, *exit,]);
             tree.push(CfrTreeGroup::For {
-                iter : CfrTree::bb(bb),
-                then : recover_cfg_node(prims, *then, until, scopes)
+                next   : bb,
+                switch : *iter,
+                then   : recover_cfg_node(prims, *then, until, scopes)
             });
             _ = scopes.pop();
             _ = until.pop();
             _ = until.pop();
+            tree.append(&mut recover_cfg_node(prims, *exit, until, scopes))
         },
+
+        CfaPrim::For { .. } => { unreachable!(); }, // Blocked by `CfaPrim::ForIter`.
 
         CfaPrim::Match { thens, exit } => {
             tree.push(CfrTreeGroup::Block(bb));

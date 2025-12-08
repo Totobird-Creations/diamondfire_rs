@@ -238,12 +238,33 @@ use diamondfire::*;
 // }
 
 
-fn for_loops(mut x : u64) {
+// fn for_loops(mut x : u64) {
+//     // bb0
+//     let iter = 1..x;
+//     // bb1
+//     for i in iter { // for ( bb2; bb3 )
+//         // bb5+7
+//         x /= i;
+//     } // unreachable { bb4 }
+//     // bb6
+// }
+
+
+fn nested_for_loops(mut size : u64) -> u64 {
     // bb0
-    let iter = 1..x;
-    for i in iter { // for ( bb1; bb2; bb3; )
-        // bb5+7
-        x /= i;
-    }
+    let mut out = 0;
+    let y_iter = 0..size;
+    // bb1
+    for y in y_iter { // for ( bb2; bb3 )
+        // bb5
+        let x_iter = 0..y;
+        for x in x_iter { // bb7; for ( bb8; bb9 )
+            // bb10
+            out += x*y;
+        } // unreachable { bb4 }
+        // bb11
+    } // unreachable { bb4 }
     // bb6
+    // return
+    out
 }

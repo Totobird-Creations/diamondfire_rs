@@ -2,7 +2,8 @@
     rustc_private,
     f128,
     debug_closure_helpers,
-    map_try_insert
+    map_try_insert,
+    assert_matches
 )]
 
 
