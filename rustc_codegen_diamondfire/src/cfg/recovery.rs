@@ -51,8 +51,8 @@ pub enum CfrTreeGroup {
         cond : CfrTree,
         then : CfrTree
     },
-    Continue {
-        depth : usize
+    Match {
+        thens : Vec<CfrTree>
     },
     Return,
     Unreachable
@@ -88,9 +88,17 @@ impl CfrTreeGroup {
                 write!(f, ") ")?;
                 then.fmt_indent(f, indent)?;
             },
-            Self::Continue { depth } => { write!(f, "continue {}", depth)?; },
-            Self::Return             => { write!(f, "return")?; },
-            Self::Unreachable        => { write!(f, "unreachable")?; }
+            Self::Match { thens } => {
+                write!(f, "match (...) {{")?;
+                for (i, then,) in thens.iter().enumerate() {
+                    if (i > 0) { write!(f, ",")?; }
+                    write!(f, "\n{: >indent4$}... => ", "", indent4 = 4*indent)?;
+                    then.fmt_indent(f, indent)?;
+                }
+                write!(f, "}}")?;
+            },
+            Self::Return      => { write!(f, "return")?; },
+            Self::Unreachable => { write!(f, "unreachable")?; }
         }
         Ok(())
     }
@@ -138,36 +146,21 @@ fn recover_cfg_node(
 
         CfaPrim::If { then, exit } => {
             tree.push(CfrTreeGroup::Block(bb));
-            until.push(*exit);
+            if let Some(exit) = exit { until.push(*exit); }
             tree.push(CfrTreeGroup::If {
                 then : recover_cfg_node(prims, *then, until, scopes)
             });
-            _ = until.pop();
-        },
-
-        CfaPrim::IfDiverge { then } => {
-            tree.push(CfrTreeGroup::Block(bb));
-            tree.push(CfrTreeGroup::If {
-                then : recover_cfg_node(prims, *then, until, scopes)
-            });
+            if (exit.is_some()) { until.pop(); }
         },
 
         CfaPrim::IfElse { then, els, exit } => {
             tree.push(CfrTreeGroup::Block(bb));
-            until.push(*exit);
+            if let Some(exit) = exit { until.push(*exit); }
             tree.push(CfrTreeGroup::IfElse {
                 then : recover_cfg_node(prims, *then, until, scopes),
                 els  : recover_cfg_node(prims, *els, until, scopes)
             });
-            _ = until.pop();
-        },
-
-        CfaPrim::IfElseDiverge { then, els } => {
-            tree.push(CfrTreeGroup::Block(bb));
-            tree.push(CfrTreeGroup::IfElse {
-                then : recover_cfg_node(prims, *then, until, scopes),
-                els  : recover_cfg_node(prims, *els, until, scopes)
-            });
+            if (exit.is_some()) { until.pop(); }
         },
 
         CfaPrim::LoopDelimiter { then } => {
@@ -195,6 +188,13 @@ fn recover_cfg_node(
             _ = scopes.pop();
             _ = until.pop();
             _ = until.pop();
+        },
+
+        CfaPrim::Match { thens, exit } => {
+            tree.push(CfrTreeGroup::Block(bb));
+            if let Some(exit) = exit { until.push(*exit); }
+            tree.push(CfrTreeGroup::Match { thens : thens.iter().map(|then| recover_cfg_node(prims, *then, until, scopes)).collect::<Vec<_>>() });
+            if (exit.is_some()) { until.pop(); }
         },
 
         CfaPrim::Return => {

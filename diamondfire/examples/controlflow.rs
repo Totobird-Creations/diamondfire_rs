@@ -100,20 +100,20 @@ use diamondfire::*;
 // }
 
 
-fn two_loops(mut x : u64) {
-    // bb0
-    loop {
-        while (
-            // bb1
-            x < 10
-        ) {
-            // bb2
-            x += 1;
-        }
-        // bb3
-        x = 0;
-    }
-}
+// fn two_loops(mut x : u64) {
+//     // bb0
+//     loop {
+//         while (
+//             // bb1
+//             x < 10
+//         ) {
+//             // bb2
+//             x += 1;
+//         }
+//         // bb3
+//         x = 0;
+//     }
+// }
 
 
 // fn increment_forever(mut x : u64) {
@@ -128,6 +128,35 @@ fn two_loops(mut x : u64) {
 //     }
 //     x += 10;
 // }
+
+
+fn simple_match(mut x : u64) {
+    // bb0
+    match (x) {
+        1 => {
+            // bb4
+            x += 10;
+        },
+        2 => {
+            // bb3
+            x -= 2;
+        },
+        3 => {
+            // bb2
+            x *= 5;
+        },
+        4 => {
+            // bb5
+            x /= 3;
+        },
+        _ => {
+            // bb1
+            x = 999;
+        }
+    }
+    // bb6
+    // return
+}
 
 
 // fn increment_forever(mut x : u64) {

@@ -12,9 +12,10 @@ pub use stmt::*;
 
 #[derive(Debug, Default)]
 pub struct CfBranches {
-    pub loops  : Vec<CfLoopBranch>,
-    pub whiles : Vec<CfLoopBranch>,
-    pub ifs    : Vec<CfIfBranch>
+    pub loops   : Vec<CfLoopBranch>,
+    pub whiles  : Vec<CfLoopBranch>,
+    pub ifs     : Vec<CfIfBranch>,
+    pub matches : Vec<CfMatchBranch>
 }
 
 #[derive(Debug)]
@@ -27,6 +28,11 @@ pub struct CfLoopBranch {
 pub struct CfIfBranch {
     pub cond_span : Span,
     pub has_else  : bool
+}
+
+#[derive(Debug)]
+pub struct CfMatchBranch {
+    pub kw_key_span : Span
 }
 
 

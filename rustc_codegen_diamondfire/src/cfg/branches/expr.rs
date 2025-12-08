@@ -2,12 +2,14 @@ use super::{
     CfBranches,
     CfLoopBranch,
     CfIfBranch,
+    CfMatchBranch,
     find_block_cfb
 };
 use rustc_hir::{
     Expr,
     ExprKind,
-    LoopSource
+    LoopSource,
+    MatchSource
 };
 use rustc_middle::ty::TyCtxt;
 
@@ -78,7 +80,23 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
         find_block_cfb(tcx, branches, block);
     },
 
-    ExprKind::Match(_, _, _) => todo!(),
+    ExprKind::Match(key, arms, source) => {
+        match (source) {
+            MatchSource::Normal => {
+                branches.matches.push(CfMatchBranch { kw_key_span : key.span });
+            },
+            MatchSource::Postfix => todo!(),
+            MatchSource::ForLoopDesugar => todo!(),
+            MatchSource::TryDesugar(_) => todo!(),
+            MatchSource::AwaitDesugar => todo!(),
+            MatchSource::FormatArgs => todo!(),
+        }
+        find_expr_cfb(tcx, branches, key);
+        for arm in arms {
+            if (arm.guard.is_some()) { todo!(); }
+            find_expr_cfb(tcx, branches, arm.body);
+        }
+    },
 
     ExprKind::Closure(_) => todo!(),
 
@@ -104,7 +122,11 @@ pub fn find_expr_cfb(tcx : &TyCtxt<'_>, branches : &mut CfBranches, expr : &Expr
 
     ExprKind::Continue(_) => todo!(),
 
-    ExprKind::Ret(_) => todo!(),
+    ExprKind::Ret(value) => {
+        if let Some(value) = value {
+            find_expr_cfb(tcx, branches, value);
+        }
+    },
 
     ExprKind::Become(_) => todo!(),
 

@@ -26,19 +26,12 @@ pub enum CfaPrim {
     },
     If {
         then : BasicBlock,
-        exit : BasicBlock
-    },
-    IfDiverge {
-        then : BasicBlock
+        exit : Option<BasicBlock>
     },
     IfElse {
         then : BasicBlock,
         els  : BasicBlock,
-        exit : BasicBlock
-    },
-    IfElseDiverge {
-        then : BasicBlock,
-        els  : BasicBlock
+        exit : Option<BasicBlock>
     },
     LoopDelimiter {
         then : BasicBlock
@@ -47,6 +40,10 @@ pub enum CfaPrim {
         then : BasicBlock,
         exit : BasicBlock
     },
+    Match {
+        thens : Vec<BasicBlock>,
+        exit  : Option<BasicBlock>
+    },
     Return,
     Unreachable
 }
@@ -54,12 +51,11 @@ pub enum CfaPrim {
 impl CfaPrim {
     pub fn exit(&self) -> Option<BasicBlock> { match (self) {
         Self::Sequence { exit }    => Some(*exit),
-        Self::If { exit, .. }      => Some(*exit),
-        Self::IfDiverge { .. }     => None,
-        Self::IfElse { exit, .. }  => Some(*exit),
-        Self::IfElseDiverge { .. } => None,
+        Self::If { exit, .. }      => *exit,
+        Self::IfElse { exit, .. }  => *exit,
         Self::LoopDelimiter { .. } => None,
         Self::While { exit, .. }   => Some(*exit),
+        Self::Match { exit, .. }   => *exit,
         Self::Return               => None,
         Self::Unreachable          => None
     } }
@@ -82,11 +78,13 @@ pub fn analyse_cfb<'tcx>(
             TerminatorKind::Goto { target } => {
 
                 for loopb in &cfb.loops {
+                    // Loop
                     if (term.source_info.span.contains(loopb.kw_cond_span) && loopb.kw_cond_span.lo() == term.source_info.span.lo()) {
                         prims.bbs.insert(bbi, CfaPrim::LoopDelimiter { then : *target });
                         continue 'bb_loop;
                     }
                 }
+
                 // rustc_errors::Diag::<()>::new(tcx.dcx(), rustc_errors::Level::Error, format!("{:?} goto", bbi)).with_span(term.source_info.span).emit();
 
                 prims.bbs.insert(bbi, CfaPrim::Sequence { exit : *target });
@@ -95,38 +93,58 @@ pub fn analyse_cfb<'tcx>(
 
             TerminatorKind::SwitchInt { targets, .. } => {
 
-                // The switch terminator span will be contained by the following while keyword+condition span.
-                for whileb in &cfb.whiles { if (whileb.kw_cond_span.contains(term.source_info.span)) {
-                    assert_eq!(targets.all_values(), [0]); // exit
-                    let target_bbs = targets.all_targets();
-                    prims.bbs.insert(bbi, CfaPrim::While { then : target_bbs[1], exit : target_bbs[0] });
-                    continue 'bb_loop;
-                } }
-
-                // The switch terminator span will match the following if condition span.
-                for ifb in &cfb.ifs { if (ifb.cond_span == term.source_info.span) {
-                    if (ifb.has_else) { // IfElse
-                        assert_eq!(targets.all_values(), [0]); // else
-                        let target_bbs = targets.all_targets();
-                        println!();
-                        prims.bbs.insert(bbi, {
-                            if let Some(exit) = succs.find_reconvergence(target_bbs[1], target_bbs[0]) {
-                                CfaPrim::IfElse { then : target_bbs[1], els : target_bbs[0], exit }
-                            } else { CfaPrim::IfElseDiverge { then : target_bbs[1], els : target_bbs[0] } }
-                        });
-                        println!("{:?}", prims.bbs.get(&bbi).unwrap());
-                    } else { // If
+                for whileb in &cfb.whiles {
+                    // While
+                    if (whileb.kw_cond_span.contains(term.source_info.span)) {
                         assert_eq!(targets.all_values(), [0]); // exit
                         let target_bbs = targets.all_targets();
-                        prims.bbs.insert(bbi, {
-                            if let Some(exit) = succs.find_reconvergence(target_bbs[1], target_bbs[0]) {
-                                if (exit == target_bbs[0]) { CfaPrim::If { then : target_bbs[1], exit } }
-                                else { CfaPrim::IfElse { then : target_bbs[1], els : target_bbs[0], exit } }
-                            } else { CfaPrim::IfDiverge { then : target_bbs[1] } }
-                        });
+                        prims.bbs.insert(bbi, CfaPrim::While { then : target_bbs[1], exit : target_bbs[0] });
+                        continue 'bb_loop;
                     }
-                    continue 'bb_loop;
-                } }
+                }
+
+                for ifb in &cfb.ifs {
+                    if (ifb.cond_span == term.source_info.span) {
+                        // IfElse
+                        if (ifb.has_else) {
+                            assert_eq!(targets.all_values(), [0]); // else
+                            let target_bbs = targets.all_targets();
+                            println!();
+                            prims.bbs.insert(bbi, {
+                                if let Some((exit, _,)) = succs.find_reconvergence(target_bbs[1], target_bbs[0]) {
+                                    CfaPrim::IfElse { then : target_bbs[1], els : target_bbs[0], exit : Some(exit) }
+                                } else { CfaPrim::IfElse { then : target_bbs[1], els : target_bbs[0], exit : None } }
+                            });
+                        }
+                        // If
+                        else {
+                            assert_eq!(targets.all_values(), [0]); // exit
+                            let target_bbs = targets.all_targets();
+                            prims.bbs.insert(bbi, {
+                                if let Some((exit, _,)) = succs.find_reconvergence(target_bbs[1], target_bbs[0]) {
+                                    if (exit == target_bbs[0]) { CfaPrim::If { then : target_bbs[1], exit : Some(exit) } }
+                                    else { CfaPrim::IfElse { then : target_bbs[1], els : target_bbs[0], exit : Some(exit) } }
+                                } else { CfaPrim::If { then : target_bbs[1], exit : None } }
+                            });
+                        }
+                        continue 'bb_loop;
+                    }
+                }
+
+                for matchb in &cfb.matches {
+                    // Match
+                    if (term.source_info.span.contains(matchb.kw_key_span) && matchb.kw_key_span.hi() == term.source_info.span.hi()) {
+                        let target_bbs = targets.all_targets();
+                        prims.bbs.insert(bbi, CfaPrim::Match {
+                            thens : target_bbs.to_vec(),
+                            exit  : succs.find_reconvergence_many(target_bbs)
+                        });
+                        continue 'bb_loop;
+                    }
+                }
+
+                let mut diag = rustc_errors::Diag::<()>::new(tcx.dcx(), rustc_errors::Level::Error, format!("{:?} match", bbi)).with_span(term.source_info.span);
+                diag.emit();
 
                 todo!()
 
@@ -228,16 +246,35 @@ impl Successors {
 
 impl Successors {
 
-    fn get_depth(&self, from : BasicBlock, to : BasicBlock) -> Option<usize> {
-        self.0.get(&from).unwrap().get(&to).cloned()
+    fn find_reconvergence(&self, a : BasicBlock, b : BasicBlock) -> Option<(BasicBlock, usize,)> {
+        let a_succs = self.0.get(&a).unwrap();
+        let b_succs = self.0.get(&b).unwrap();
+        a_succs.iter()
+            .filter(|(bb, _,)| b_succs.contains_key(bb))
+            .map(|(bb, _,)| (
+                *bb,
+                a_succs.get(bb).unwrap() + b_succs.get(bb).unwrap() // depth
+            ))
+            .min_by_key(|(_, depth,)| *depth)
     }
 
-    fn find_reconvergence(&self, a : BasicBlock, b : BasicBlock) -> Option<BasicBlock> {
-        let a_succs      = self.0.get(&a).unwrap();
-        let b_succs      = self.0.get(&b).unwrap();
-        a_succs.iter()
-            .filter_map(|(a_succ, _,)| b_succs.contains_key(a_succ).then_some(*a_succ))
-            .min_by_key(|bbi| a_succs.get(bbi).unwrap() + b_succs.get(bbi).unwrap())
+    fn find_reconvergence_many(&self, from : &[BasicBlock]) -> Option<BasicBlock> {
+        let mut reconverge = None;
+        for ai in 0..from.len() {
+            for bi in (ai+1)..from.len() {
+                let a = from[ai];
+                let b = from[bi];
+                if let Some((exit, _,)) = self.find_reconvergence(a, b) {
+                    match (reconverge) {
+                        Some(old_reconverge) => { if let Some((exit1, _,)) = self.find_reconvergence(old_reconverge, exit) {
+                            reconverge = Some(exit1);
+                        } },
+                        None => { reconverge = Some(exit); }
+                    }
+                }
+            }
+        }
+        reconverge
     }
 
 }
