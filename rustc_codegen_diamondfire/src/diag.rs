@@ -33,3 +33,12 @@ pub fn inlineasm_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
         "inline assembly is unsupported by the `diamondfire-unknown-unknown` target"
     ).with_span(span).emit();
 }
+
+pub fn missing_switch(dcx : DiagCtxtHandle<'_>, span : Span) {
+    Diag::<ErrorGuaranteed>::new(dcx,
+        Level::Error,
+        "undiscovered branch"
+    ).with_span(span)
+        .with_help("the `diamondfire-unknown-unknown` target requires `RUSTFLAGS=\"-Zinline-mir=no\"`")
+        .emit();
+}

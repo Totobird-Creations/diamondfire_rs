@@ -102,10 +102,6 @@ impl CodegenBackend for DiamondfireCodegen {
                     let instance = Instance::mono(tcx, def_id);
                     let hir      = tcx.hir_body(body);
                     let mir      = tcx.optimized_mir(def_id);
-                    // for scope in mir.source_scopes.iter() { if let Some((inlined, _,)) = &scope.inlined {
-                    //     rustc_hir::BodyId { hir_id : rustc_hir::HirId { owner : inlined.def_id(). } }
-                    //     // println!("{:?}", tcx.hir_body());
-                    // } }
                     println!();
                     for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
                         println!("bb{:?}:", bbi);

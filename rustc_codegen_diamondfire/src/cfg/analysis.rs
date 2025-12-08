@@ -143,11 +143,7 @@ pub fn analyse_cfb<'tcx>(
                     }
                 }
 
-                let mut diag = rustc_errors::Diag::<()>::new(tcx.dcx(), rustc_errors::Level::Error, format!("{:?} match", bbi)).with_span(term.source_info.span);
-                diag.emit();
-
-                todo!()
-
+                diag::missing_switch(tcx.dcx(), term.source_info.span);
             },
 
             TerminatorKind::UnwindResume

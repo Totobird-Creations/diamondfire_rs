@@ -1,6 +1,9 @@
 [build]
 target    = "../diamondfire-unknown-unknown.json"
-rustflags = [ "-Zno-steal-thir" ]
+rustflags = [
+    "-Zno-steal-thir",
+    "-Zinline-mir=no"
+]
 
 [unstable]
 build-std = [ "core", "test" ]
