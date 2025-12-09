@@ -9,16 +9,21 @@ use core::{
 
 #[cfg(feature = "allocator")]
 pub mod alloc;
+
 #[cfg(feature = "allocator")]
 pub mod boxed;
+
 pub mod string;
 
 
 /// Common types and functions.
 pub mod prelude {
+
     #[cfg(feature = "allocator")]
     pub use super::boxed;
+
     pub use super::string::{ String, ToString };
+
 }
 
 

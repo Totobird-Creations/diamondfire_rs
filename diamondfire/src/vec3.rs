@@ -11,7 +11,7 @@ use core::{
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct Vec3 {
-    _opaque : df_vector
+    pub(crate) _opaque : df_vector
 }
 
 
@@ -21,7 +21,7 @@ impl Vec3 {
     #[must_use]
     #[inline(always)]
     pub fn new(x : f64, y : f64, z : f64) -> Self { unsafe {
-        let mut out = MaybeUninit::uninit();
+        let mut out = MaybeUninit::<df_vector>::uninit();
         DF_ACTION__setSPECIALSpace_variable__Vector(
             out.as_mut_ptr(),
             df_number::from_f64(x),
@@ -87,7 +87,7 @@ impl Vec3 {
 
 impl Vec3 {
 
-    /// Creates a vector by replacing the `x` element in `self`.
+    /// Creates a vector by replacing the `x` element of `self`.
     #[must_use]
     #[inline(always)]
     pub fn with_x(self, x : f64) -> Self { unsafe {
@@ -101,7 +101,7 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
-    /// Creates a vector by replacing the `y` element in `self`.
+    /// Creates a vector by replacing the `y` element of `self`.
     #[must_use]
     #[inline(always)]
     pub fn with_y(self, y : f64) -> Self { unsafe {
@@ -115,7 +115,7 @@ impl Vec3 {
         Self { _opaque : out.assume_init() }
     } }
 
-    /// Creates a vector by replacing the `z` element in `self`.
+    /// Creates a vector by replacing the `z` element of `self`.
     #[must_use]
     #[inline(always)]
     pub fn with_z(self, z : f64) -> Self { unsafe {

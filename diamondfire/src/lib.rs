@@ -17,7 +17,8 @@ pub mod debug;
 
 // TODO: text
 
-// TODO: location
+mod location;
+pub use location::*;
 
 mod vec3;
 pub use vec3::*;
@@ -58,6 +59,7 @@ pub mod std;
 pub mod prelude {
     pub use super::debug::println;
     pub use super::vec3::Vec3;
+    pub use super::location::Location;
     pub use super::std::prelude::*;
 }
 

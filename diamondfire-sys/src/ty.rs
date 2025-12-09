@@ -333,6 +333,9 @@ impl df_dict {
 
 unsafe extern "C" {
 
+    /// Returns a location with all components set to `0`.
+    pub safe fn DF_LOCATION__Zero() -> df_location;
+
     /// Assumes that the given value is a DiamondFire `String` without checking.
     ///
     /// ## Safety

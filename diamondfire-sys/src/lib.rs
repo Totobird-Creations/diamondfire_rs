@@ -39,6 +39,7 @@ unsafe extern "C" {
 
     /// Returns the name of the variable behind a pointer.
     pub unsafe fn DF_VAR__NameOf(ptr : *mut df_opaque) -> df_string;
+
 }
 
 mod generated;
