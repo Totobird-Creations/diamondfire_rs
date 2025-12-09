@@ -1,3 +1,4 @@
+use core::fmt::{ self, Display, Formatter };
 use rustc_data_structures::graph::{
     Predecessors,
     Successors
@@ -16,39 +17,92 @@ use rustc_middle::{
 pub struct CfrTree {
     pub branches : Vec<CfrBranch>
 }
+impl Display for CfrTree {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        self.fmt_indent(f, 0)
+    }
+}
+impl CfrTree {
+    fn fmt_indent(&self, f : &mut Formatter<'_>, indent : usize) -> fmt::Result {
+        let indent1 = indent + 1;
+        let space   = if (f.alternate()) { "" } else { " " };
+        write!(f, "{{{space}")?;
+        for branch in &self.branches {
+            if (f.alternate()) {
+                write!(f, "\n{: >indent4$}", "", indent4 = 4*indent1)?;
+            }
+            branch.fmt_indent(f, indent1)?;
+            write!(f, ";{space}")?;
+        }
+        if (f.alternate() && ! self.branches.is_empty()) {
+            write!(f, "\n{: >indent4$}", "", indent4 = 4*indent)?;
+        }
+        write!(f, "}}")?;
+        Ok(())
+    }
+}
+
 
 #[derive(Debug)]
 pub enum CfrBranch {
     Block(BasicBlock),
-    If {
-        cond : CfrTree,
-        then : CfrTree
-    },
-    IfElse {
-        cond : CfrTree,
-        then : CfrTree,
-        els  : CfrTree
-    },
-    While {
-        cond : CfrTree,
-        then : CfrTree
-    },
-    DoWhile {
-        then : CfrTree,
-        cond : CfrTree
+    Match {
+        cases : Vec<CfrTree>
     },
     Loop {
-        then : CfrTree
+        /// First branch must be `CfrBranch::Block` with the loop header.
+        body : CfrTree
     },
-    Break {
-        to : BasicBlock
-    },
+    // Break {
+    //     to : BasicBlock
+    // },
     Continue {
-        from : BasicBlock
+        header : BasicBlock
     },
     Return,
     Unreachable,
     Todo
+}
+impl Display for CfrBranch {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        self.fmt_indent(f, 0)
+    }
+}
+impl CfrBranch {
+    fn fmt_indent(&self, f : &mut Formatter<'_>, indent : usize) -> fmt::Result {
+        match (self) {
+            Self::Block(bb) => {
+                write!(f, "bb{}", bb.index())?;
+            },
+            Self::Match { cases } => {
+                if (cases.len() == 2) {
+                    write!(f, "if (...) ")?;
+                    cases[0].fmt_indent(f, indent)?;
+                    write!(f, " else ")?;
+                    cases[1].fmt_indent(f, indent)?;
+                } else {
+                    write!(f, "match (...) {{")?;
+                    for (i, case,) in cases.iter().enumerate() {
+                        if (i > 0) { write!(f, ",")?; }
+                        write!(f, "\n{: >indent4$}... => ", "", indent4 = 4*(indent+1))?;
+                        case.fmt_indent(f, indent+1)?;
+                    }
+                    write!(f, "\n{: >indent4$}}}", "", indent4 = 4*indent)?;
+                }
+            },
+            Self::Loop { body } => {
+                write!(f, "loop ")?;
+                body.fmt_indent(f, indent)?;
+            },
+            Self::Continue { header } => {
+                write!(f, "continue -> bb{}", header.index())?;
+            },
+            Self::Return      => { write!(f, "return")?; },
+            Self::Unreachable => { write!(f, "unreachable")?; },
+            Self::Todo        => { write!(f, "todo")?; }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -78,6 +132,16 @@ pub fn find_cfr_tree(tcx : TyCtxt<'_>, body : &BasicBlocks<'_>) -> CfrTree {
 }
 
 fn find_cfr_tree_at(tcx : TyCtxt<'_>, body : &BasicBlocks<'_>, scope : &mut Vec<CfrScope>, at : BasicBlock) -> CfrTree {
+    let mut tree_root = CfrTree::default();
+    let mut tree      = &mut tree_root;
+
+    if let Some(CfrScope::Loop { header }) = scope.last() {
+        if (*header == at) {
+            tree.branches.push(CfrBranch::Continue { header : *header });
+            return tree_root
+        }
+        // TODO: Break
+    }
 
     // Loops
     let mut scope_pop = 0;
@@ -85,36 +149,64 @@ fn find_cfr_tree_at(tcx : TyCtxt<'_>, body : &BasicBlocks<'_>, scope : &mut Vec<
         if (dominates(body, at, pbb)) {
             scope.push(CfrScope::Loop { header : at });
             scope_pop += 1;
+            tree.branches.push(CfrBranch::Loop { body : CfrTree::default() });
+            let CfrBranch::Loop { body } = tree.branches.last_mut().unwrap() else { unreachable!() };
+            tree = body;
             break;
         }
     }
 
     let term = body.get(at).unwrap().terminator();
-    let tree = { match (&term.kind) {
+    match (&term.kind) {
 
         TerminatorKind::Goto { target }
         | TerminatorKind::Drop { target, .. }
         | TerminatorKind::Assert { target, .. }
         => {
-            let mut branches = vec![ CfrBranch::Block(at) ];
-            branches.append(&mut find_cfr_tree_at(tcx, body, scope, *target).branches);
-            CfrTree { branches }
+            tree.branches.push(CfrBranch::Block(at));
+            tree.branches.append(&mut find_cfr_tree_at(tcx, body, scope, *target).branches);
         },
 
-        TerminatorKind::SwitchInt { discr, targets }
+        TerminatorKind::SwitchInt { targets, .. }
         => {
-            CfrTree { branches : vec![ CfrBranch::Todo ] }
+            let target_bbs = targets.all_targets().iter().filter(|target_bb| {
+                ! matches!(body.get(**target_bb).unwrap().terminator().kind, TerminatorKind::Unreachable)
+            }).cloned().collect::<Vec<_>>();
+
+            tree.branches.push(CfrBranch::Block(at));
+            if (target_bbs.iter().all(|target_bb| dominates(body, at, *target_bb))) {
+                tree.branches.push(CfrBranch::Match {
+                    cases : target_bbs.iter()
+                        .map(|target_bb| find_cfr_tree_at(tcx, body, scope, *target_bb))
+                        .collect::<Vec<_>>()
+                });
+            } else {
+                todo!()
+            }
         },
 
         TerminatorKind::Return
-        => { CfrTree { branches : vec![ CfrBranch::Block(at), CfrBranch::Return ] } },
+        => {
+            tree.branches.push(CfrBranch::Block(at));
+            tree.branches.push(CfrBranch::Return);
+        },
 
         TerminatorKind::Unreachable
         | TerminatorKind::TailCall { .. }
-        => { CfrTree { branches : vec![ CfrBranch::Block(at), CfrBranch::Unreachable ] } },
+        => {
+            tree.branches.push(CfrBranch::Block(at));
+            tree.branches.push(CfrBranch::Unreachable);
+        },
 
         TerminatorKind::Call { target, .. }
-        => todo!(),
+        => {
+            tree.branches.push(CfrBranch::Block(at));
+            if let Some(target) = target {
+                tree.branches.append(&mut find_cfr_tree_at(tcx, body, scope, *target).branches);
+            } else {
+                tree.branches.push(CfrBranch::Unreachable);
+            }
+        },
 
         TerminatorKind::UnwindResume
         | TerminatorKind::UnwindTerminate(_)
@@ -123,28 +215,13 @@ fn find_cfr_tree_at(tcx : TyCtxt<'_>, body : &BasicBlocks<'_>, scope : &mut Vec<
         | TerminatorKind::FalseEdge { .. }
         | TerminatorKind::FalseUnwind { .. }
         | TerminatorKind::InlineAsm { .. }
-        => { CfrTree::default() },
+        => { },
 
-    } };
+    };
 
     for _ in 0..scope_pop {
         _ = scope.pop();
     }
 
-    tree
-
-
-    // if let Some(CfrScope::Loop { header }) = scope.last()
-    //     && (term.successors().any(|s| s == *header))
-    // {}
-
-    // if let TerminatorKind::SwitchInt { targets, .. } = &term.kind {
-    //     let target_bbs = targets.all_targets().iter().filter(|target_bb| {
-    //         ! matches!(body.get(**target_bb).unwrap().terminator().kind, TerminatorKind::Unreachable)
-    //     }).cloned().collect::<Vec<_>>();
-    //     if (target_bbs.len() == 2 && dominates(body, bb, target_bbs[0]) && dominates(body, bb, target_bbs[1])) {
-    //         println!("if(else) header {:?}", bb);
-    //     }
-    // }
-
+    tree_root
 }

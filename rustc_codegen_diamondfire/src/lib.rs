@@ -115,7 +115,7 @@ impl CodegenBackend for DiamondfireCodegen {
                     }
                     println!();
                     let cfr_tree = cfr::find_cfr_tree(tcx, &mir.basic_blocks);
-                    println!("{:#?}", cfr_tree);
+                    println!("{:#}", cfr_tree);
                     // lower1::mir_to_dfmir(tcx, instance, mir);
                 },
                 ItemKind::Macro(_, _, _,) => { },
