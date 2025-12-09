@@ -73,7 +73,9 @@ pub fn term_to_dfmir<'tcx>(
         },
 
         TerminatorKind::Yield { .. }
-        | TerminatorKind::CoroutineDrop
+        => { diag::disallowed_post_coroutine_lowering(); }
+
+        TerminatorKind::CoroutineDrop
         => { diag::coroutines_unsupported(tcx.dcx(), term.source_info.span); },
 
         TerminatorKind::FalseEdge { .. }

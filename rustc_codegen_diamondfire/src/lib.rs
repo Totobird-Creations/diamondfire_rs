@@ -57,7 +57,7 @@ use rustc_session::{
 use rustc_span::def_id::CRATE_DEF_ID;
 
 
-pub mod cfg;
+pub mod cfr;
 pub mod dfmir;
 
 pub mod lower1;
@@ -81,11 +81,6 @@ impl CodegenBackend for DiamondfireCodegen {
 
     fn codegen_crate<'tcx>(&self, tcx : TyCtxt<'tcx>) -> Box<dyn Any> {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
-
-        if (tcx.sess.opts.unstable_opts.inline_mir != Some(false)) {
-            diag::no_inline_mir_missing(tcx.dcx(), tcx.def_span(CRATE_DEF_ID).shrink_to_lo());
-            return Box::new(CrateToJoin { crate_info });
-        }
 
         let crate_name = crate_info.local_crate_name.to_string();
         if (crate_name == "core" || crate_name == "compiler_builtins" || crate_name == "diamondfire" || crate_name == "diamondfire-sys") { // TODO: Remove
@@ -119,12 +114,8 @@ impl CodegenBackend for DiamondfireCodegen {
                         println!("  {:?}", bb.terminator().kind);
                     }
                     println!();
-                    let branches  = cfg::find_body_cfb(&tcx, hir);
-                    let cfa_prims = cfg::analyse_cfb(tcx, &branches, &mir.basic_blocks);
-                    println!("{:#?}", cfa_prims);
-                    println!();
-                    let cfg_tree  = cfg::recover_cfg(&cfa_prims);
-                    println!("{:#}", cfg_tree);
+                    let cfr_tree = cfr::find_cfr_tree(tcx, &mir.basic_blocks);
+                    println!("{:#?}", cfr_tree);
                     // lower1::mir_to_dfmir(tcx, instance, mir);
                 },
                 ItemKind::Macro(_, _, _,) => { },

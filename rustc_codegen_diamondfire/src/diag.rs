@@ -13,11 +13,10 @@ pub fn disallowed_post_drop_elaboration() {
     unreachable!("disallowed after drop elaboration")
 }
 
-pub fn no_inline_mir_missing(dcx : DiagCtxtHandle<'_>, span : Span) {
-    Diag::<ErrorGuaranteed>::new(dcx,
-        Level::Error,
-        "the `diamondfire-unknown-unknown` target requires `RUSTFLAGS=\"-Zinline-mir=no\"`"
-    ).with_span(span).emit();
+#[inline(always)]
+#[track_caller]
+pub fn disallowed_post_coroutine_lowering() {
+    unreachable!("disallowed after coroutine lowering")
 }
 
 pub fn unwinding_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {

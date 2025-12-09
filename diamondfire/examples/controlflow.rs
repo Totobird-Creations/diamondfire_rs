@@ -65,18 +65,25 @@ use diamondfire::*;
 // }
 
 
-// fn simple_loop(mut x : u64) {
-//     // bb0
+// fn really_simple_loop(mut x : u64) {
 //     loop {
-//         // bb1
-//         if (x > 10) {
-//             // bb2
-//             x -= 10;
-//         } // else { bb3 }
-//         // bb4
-//         x += 1;
+//         x += 10;
 //     }
 // }
+
+
+fn simple_loop(mut x : u64) {
+    // bb0
+    loop {
+        // bb1
+        if (x > 10) {
+            // bb2
+            x -= 10;
+        } // else { bb3 }
+        // bb4
+        x += 1;
+    }
+}
 
 
 // fn two_loops(mut x : u64) {
