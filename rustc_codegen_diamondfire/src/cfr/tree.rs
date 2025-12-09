@@ -11,8 +11,9 @@ pub struct CfrTree {
 pub enum CfrBranch {
     Block(BasicBlock),
     Match {
-        header : BasicBlock,
-        cases  : Vec<CfrTree>
+        header   : BasicBlock,
+        cases    : Vec<(u128, CfrTree,)>,
+        fallback : CfrTree
     },
     Loop {
         header : BasicBlock,
@@ -67,19 +68,21 @@ impl CfrBranch {
             Self::Block(bb) => {
                 write!(f, "bb{}", bb.index())?;
             },
-            Self::Match { cases, .. } => {
-                if (cases.len() == 2) {
+            Self::Match { cases, fallback, .. } => {
+                if (cases.len() == 1) {
                     write!(f, "if (...) ")?;
-                    cases[0].fmt_indent(f, indent)?;
+                    cases[0].1.fmt_indent(f, indent)?;
                     write!(f, " else ")?;
-                    cases[1].fmt_indent(f, indent)?;
+                    fallback.fmt_indent(f, indent)?;
                 } else {
                     write!(f, "match (...) {{")?;
-                    for (i, case,) in cases.iter().enumerate() {
-                        if (i > 0) { write!(f, ",")?; }
-                        write!(f, "\n{: >indent4$}... => ", "", indent4 = 4*(indent+1))?;
+                    for (key, case,) in cases {
+                        write!(f, "\n{: >indent4$}{} => ", "", key, indent4 = 4*(indent+1))?;
                         case.fmt_indent(f, indent+1)?;
+                        write!(f, ",")?;
                     }
+                    write!(f, "\n{: >indent4$}_ => ", "", indent4 = 4*(indent+1))?;
+                    fallback.fmt_indent(f, indent+1)?;
                     write!(f, "\n{: >indent4$}}}", "", indent4 = 4*indent)?;
                 }
             },

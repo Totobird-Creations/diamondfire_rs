@@ -12,27 +12,27 @@ use diamondfire::*;
 // }
 
 
-fn if_else_stmt(mut x : u64) -> u64 {
-    // bb0
-    if (x == 0) {
-        // bb1
-        x += 2;
-    } // else { bb2 }
-    // bb3
-    if (x > 10) {
-        // bb4
-        x += 20;
-        if (x < 5) {
-            // bb5
-            x /= 2;
-        } // else { bb6 }
-        // bb7
-    } // else { bb8 }
-    // bb9
-    x -= 10;
-    x
-    // return
-}
+// fn if_else_stmt(mut x : u64) -> u64 {
+//     // bb0
+//     if (x == 0) {
+//         // bb1
+//         x += 2;
+//     } // else { bb2 }
+//     // bb3
+//     if (x > 10) {
+//         // bb4
+//         x += 20;
+//         if (x < 5) {
+//             // bb5
+//             x /= 2;
+//         } // else { bb6 }
+//         // bb7
+//     } // else { bb8 }
+//     // bb9
+//     x -= 10;
+//     x
+//     // return
+// }
 
 
 // fn if_else_stmt(mut x : u64) -> u64 {
@@ -237,20 +237,13 @@ fn if_else_stmt(mut x : u64) -> u64 {
 
 
 // fn nested_for_loops(mut size : u64) -> u64 {
-//     // bb0
 //     let mut out = 0;
 //     let y_iter = 0..size;
-//     // bb1
-//     for y in y_iter { // for ( bb2; bb3 )
-//         // bb5
+//     for y in y_iter {
 //         let x_iter = 0..y;
-//         for x in x_iter { // bb7; for ( bb8; bb9 )
-//             // bb10
+//         for x in x_iter {
 //             out += x*y;
-//         } // unreachable { bb4 }
-//         // bb11
-//     } // unreachable { bb4 }
-//     // bb6
-//     // return
+//         }
+//     }
 //     out
 // }
