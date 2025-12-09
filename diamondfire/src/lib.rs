@@ -2,7 +2,8 @@
 
 #![feature(
     core_intrinsics,
-    decl_macro
+    decl_macro,
+    formatting_options
 )]
 #![no_std]
 
@@ -57,7 +58,7 @@ pub mod std;
 pub mod prelude {
     pub use super::debug::println;
     pub use super::vec3::Vec3;
-    pub use super::std;
+    pub use super::std::prelude::*;
 }
 
 
