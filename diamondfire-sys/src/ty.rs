@@ -1,3 +1,5 @@
+use core::str;
+
 /// An untyped DiamondFire value.
 ///
 /// This type is 'opaque'. No assumptions should be made about the it or any underlying data.
@@ -111,11 +113,15 @@ impl df_string {
     /// Converts an `&str` to a DiamondFire `String`.
     #[expect(clippy::should_implement_trait)]
     #[inline(always)]
-    pub fn from_str(s : &str) -> Self { DF_TRANSMUTE__str__df_string(s) }
+    pub fn from_str(s : &str) -> Self { unsafe {
+        DF_TRANSMUTE__str__df_string(s.as_ptr())
+    } }
 
     /// Returns `self` as an `&'static str`.
     #[inline(always)]
-    pub fn into_str(self) -> &'static str { DF_TRANSMUTE__df_string__str(self) }
+    pub fn into_str(self) -> &'static str { unsafe {
+        str::from_raw_parts(DF_TRANSMUTE__df_string__str(self), 1)
+    } }
 
 }
 
@@ -403,11 +409,11 @@ unsafe extern "C" {
     pub unsafe fn DF_TRANSMUTE__df_opaque__df_dictionary(x : df_opaque) -> df_dict;
 
 
-    /// Converts a `&str` into a DiamondFire `String`.
-    pub safe fn DF_TRANSMUTE__str__df_string(x : &str) -> df_string;
+    /// Converts a `&str` pointer into a DiamondFire `String`.
+    pub unsafe fn DF_TRANSMUTE__str__df_string(x : *const u8) -> df_string;
 
-    /// Converts a `&str` into a DiamondFire `String`.
-    pub safe fn DF_TRANSMUTE__df_string__str(x : df_string) -> &'static str;
+    /// Converts a `&str` pointer into a DiamondFire `String`.
+    pub unsafe fn DF_TRANSMUTE__df_string__str(x : df_string) -> *const u8;
 
     /// Converts an `f64` into a DiamondFire `Number`.
     pub safe fn DF_TRANSMUTE__f64__df_number(x : f64) -> df_number;

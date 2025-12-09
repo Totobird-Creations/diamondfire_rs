@@ -5,10 +5,7 @@ use diamondfire_sys::{
 use core::{
     borrow::Borrow,
     fmt,
-    ops::{
-        Deref,
-        Add, AddAssign
-    }
+    ops::Deref
 };
 
 mod to_string;

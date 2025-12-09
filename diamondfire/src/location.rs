@@ -1,9 +1,7 @@
 use crate::Vec3;
 use diamondfire_sys::*;
 use core::{
-    intrinsics::transmute_unchecked,
-    mem::MaybeUninit,
-    ops::{ Add, Sub, Mul, Div }
+    mem::MaybeUninit
 };
 
 
@@ -52,9 +50,9 @@ impl Location {
     /// Creates a new south-facing (`+Z`) location from a vector.
     #[must_use]
     #[inline(always)]
-    pub fn from_vec3(v : Vec3) -> Self { unsafe {
+    pub fn from_vec3(v : Vec3) -> Self {
         Self::from_xyz(v.x(), v.y(), v.z())
-    } }
+    }
 
 }
 

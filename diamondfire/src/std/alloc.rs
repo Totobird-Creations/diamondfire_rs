@@ -1,7 +1,7 @@
 use diamondfire_sys::{
     df_opaque,
     df_string,
-    DF_VAR__NewSession,
+    // DF_VAR__NewSession,
     DF_VAR__NameOf,
     DF_ACTION__setSPECIALSpace_variable__PurgeVars
 };

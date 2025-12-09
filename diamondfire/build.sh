@@ -9,7 +9,7 @@ cd $(dirname ${0})
 # This ensures that all artifacts are regenerated.
 # This is unneeded unless rustc_codegen_diamondfire has been modified.
 rm rustc-ice-*.txt || true
-rm -rd target || true
+# rm -rd target || true
 rm ../diamondfire-macros/rustc-ice-*.txt || true
 rm ../diamondfire-sys/rustc-ice-*.txt || true
 

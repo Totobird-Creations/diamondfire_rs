@@ -54,7 +54,6 @@ use rustc_session::{
     config::OutputFilenames,
     Session
 };
-use rustc_span::def_id::CRATE_DEF_ID;
 
 
 pub mod cfr;

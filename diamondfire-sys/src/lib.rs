@@ -4,6 +4,10 @@
 #![allow(unexpected_cfgs)]
 #![forbid(missing_docs)]
 
+#![feature(
+    str_from_raw_parts
+)]
+
 #![cfg_attr(doc, feature(doc_cfg))]
 #![cfg_attr(doc, doc(cfg(target_os = "diamondfire")))]
 #![no_std]
