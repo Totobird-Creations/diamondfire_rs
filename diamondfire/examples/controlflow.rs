@@ -12,27 +12,27 @@ use diamondfire::*;
 // }
 
 
-// fn if_else_stmt(mut x : u64) -> u64 {
-//     // bb0
-//     if (x == 0) {
-//         // bb1
-//         x += 2;
-//     } // else { bb2 }
-//     // bb3
-//     if (x > 10) {
-//         // bb4
-//         x += 20;
-//         if (x < 5) {
-//             // bb5
-//             x /= 2;
-//         } // else { bb6 }
-//         // bb7
-//     } // else { bb8 }
-//     // bb9
-//     x -= 10;
-//     x
-//     // return
-// }
+fn if_else_stmt(mut x : u64) -> u64 {
+    // bb0
+    if (x == 0) {
+        // bb1
+        x += 2;
+    } // else { bb2 }
+    // bb3
+    if (x > 10) {
+        // bb4
+        x += 20;
+        if (x < 5) {
+            // bb5
+            x /= 2;
+        } // else { bb6 }
+        // bb7
+    } // else { bb8 }
+    // bb9
+    x -= 10;
+    x
+    // return
+}
 
 
 // fn if_else_stmt(mut x : u64) -> u64 {
@@ -116,33 +116,33 @@ use diamondfire::*;
 // }
 
 
-fn simple_match(mut x : u64) {
-    // bb0
-    match (x) {
-        1 => {
-            // bb4
-            x += 10;
-        },
-        2 => {
-            // bb3
-            x -= 2;
-        },
-        3 => {
-            // bb2
-            x *= 5;
-        },
-        4 => {
-            // bb5
-            x /= 3;
-        },
-        _ => {
-            // bb1
-            x = 999;
-        }
-    }
-    // bb6
-    // return
-}
+// fn simple_match(mut x : u64) {
+//     // bb0
+//     match (x) {
+//         1 => {
+//             // bb4
+//             x += 10;
+//         },
+//         2 => {
+//             // bb3
+//             x -= 2;
+//         },
+//         3 => {
+//             // bb2
+//             x *= 5;
+//         },
+//         4 => {
+//             // bb5
+//             x /= 3;
+//         },
+//         _ => {
+//             // bb1
+//             x = 999;
+//         }
+//     }
+//     // bb6
+//     // return
+// }
 
 
 // fn inlining(mut x : u64) {
