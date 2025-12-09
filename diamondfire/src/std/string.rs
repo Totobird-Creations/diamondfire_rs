@@ -1,4 +1,5 @@
-use super::String;
+#[doc(inline)]
+pub use crate::value::String;
 use core::fmt::{
     Formatter,
     FormattingOptions,

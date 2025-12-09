@@ -342,6 +342,15 @@ unsafe extern "C" {
     /// Returns a location with all components set to `0`.
     pub safe fn DF_LOCATION__Zero() -> df_location;
 
+    /// Returns an arbitrary sound with pitch and speed both set to `1`.
+    ///
+    /// No assumptions can be made about the actual sound type and variant.
+    pub safe fn DF_SOUND__Any() -> df_sound;
+
+}
+
+unsafe extern "C" {
+
     /// Assumes that the given value is a DiamondFire `String` without checking.
     ///
     /// ## Safety

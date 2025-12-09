@@ -20,8 +20,10 @@ pub mod string;
 pub mod prelude {
 
     #[cfg(feature = "allocator")]
-    pub use super::boxed;
+    #[doc(inline)]
+    pub use super::boxed::Box;
 
+    #[doc(inline)]
     pub use super::string::{ String, ToString };
 
 }

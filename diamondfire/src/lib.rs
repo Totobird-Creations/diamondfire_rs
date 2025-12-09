@@ -1,10 +1,17 @@
-#![warn(missing_docs)]
+//! TODO: Doc comment
+
+
+#![allow(unexpected_cfgs)]
+#![warn(missing_docs)] // TODO: Make forbid
 
 #![feature(
     core_intrinsics,
     decl_macro,
     formatting_options
 )]
+
+#![cfg_attr(doc, feature(doc_cfg))]
+#![cfg_attr(doc, doc(cfg(target_os = "diamondfire")))]
 #![no_std]
 
 #[doc(hidden)]
@@ -13,62 +20,18 @@ extern crate self as __private_diamondfire;
 pub use diamondfire_macros as __private_diamondfire_macros;
 
 
+pub mod value;
 pub mod debug;
-
-// TODO: text
-
-mod location;
-pub use location::*;
-
-mod vec3;
-pub use vec3::*;
-
-// TODO: sound
-
-// TODO: particle
-
-// TODO: potion
-
-// TODO: world
-
-// TODO: extras::Vec2
-// TODO: extras::Vec4
-// TODO: extras::Dir2
-// TODO: extras::Dir3
-// TODO: extras::Dir4
-// TODO: extras::IVec2
-// TODO: extras::IVec3
-// TODO: extras::IVec4
-// TODO: extras::BVec2
-// TODO: extras::BVec3
-// TODO: extras::BVec4
-// TODO: extras::Mat2
-// TODO: extras::Mat3
-// TODO: extras::Mat4
-// TODO: extras::Quat
-// TODO: extras::LargeVec
-// TODO: extras::LargeHashMap
-// TODO: extras::Combined // Player or entity
-// TODO: extras::CombinedSel
-
 
 pub mod std;
 
 
 /// Common types and functions.
 pub mod prelude {
+    #[doc(inline)]
+    pub use super::value::*;
+    #[doc(inline)]
     pub use super::debug::println;
-    pub use super::vec3::Vec3;
-    pub use super::location::Location;
+    #[doc(inline)]
     pub use super::std::prelude::*;
-}
-
-
-#[inline(always)]
-pub fn inlined(x : u64) -> u64 { // TODO: Remove
-    if (x > 10) {
-        x / 2
-    } else {
-        x * 2
-    }
 }

@@ -1,5 +1,13 @@
-use crate::Vec3;
-use diamondfire_sys::*;
+use crate::value::Vec3;
+use diamondfire_sys::{
+    df_string,
+    df_number,
+    df_location,
+    DF_LOCATION__Zero,
+    DF_ACTION__setSPECIALSpace_variable__SetAllCoords,
+    DF_ACTION__setSPECIALSpace_variable__GetCoord,
+    DF_ACTION__setSPECIALSpace_variable__SetCoord
+};
 use core::{
     mem::MaybeUninit
 };
@@ -10,6 +18,13 @@ use core::{
 #[repr(transparent)]
 pub struct Location {
     _opaque : df_location
+}
+
+impl Location {
+    #[inline(always)]
+    pub fn raw(self) -> df_location { self._opaque }
+    #[inline(always)]
+    pub fn from_raw(raw : df_location) -> Self { Self { _opaque : raw } }
 }
 
 
@@ -37,7 +52,7 @@ impl Location {
             df_number::from_f64(pitch),
             df_number::from_f64(yaw)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new south-facing (`+Z`) location.
@@ -153,7 +168,7 @@ impl Location {
             self._opaque,
             df_number::from_f64(x)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new location by replacing the `y` element of `self`.
@@ -168,7 +183,7 @@ impl Location {
             self._opaque,
             df_number::from_f64(y)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new location by replacing the `z` element of `self`.
@@ -183,7 +198,7 @@ impl Location {
             self._opaque,
             df_number::from_f64(z)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new location by replacing the `yaw` element of `self`.
@@ -198,7 +213,7 @@ impl Location {
             self._opaque,
             df_number::from_f64(yaw)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new location by replacing the `x` element of `self`.
@@ -213,7 +228,7 @@ impl Location {
             self._opaque,
             df_number::from_f64(pitch)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new location by replacing the `x`, `y`, and `z` elements of `self`.
@@ -229,7 +244,7 @@ impl Location {
             df_number::from_f64(y),
             df_number::from_f64(z)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a new location by replacing the `yaw` and `pitch` elements of `self`.
