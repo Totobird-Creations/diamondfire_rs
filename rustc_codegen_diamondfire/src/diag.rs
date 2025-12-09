@@ -39,3 +39,10 @@ pub fn inlineasm_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
         "inline assembly is unsupported by the `diamondfire-unknown-unknown` target"
     ).with_span(span).emit();
 }
+
+pub fn globalasm_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
+    Diag::<ErrorGuaranteed>::new(dcx,
+        Level::Error,
+        "global assembly is unsupported by the `diamondfire-unknown-unknown` target"
+    ).with_span(span).emit();
+}

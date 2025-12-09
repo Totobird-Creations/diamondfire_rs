@@ -83,7 +83,7 @@ impl CodegenBackend for DiamondfireCodegen {
         let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
 
         let crate_name = crate_info.local_crate_name.to_string();
-        if (crate_name == "core" || crate_name == "compiler_builtins" || crate_name == "diamondfire" || crate_name == "diamondfire-sys") { // TODO: Remove
+        if (crate_name == "compiler_builtins") { // TODO: Remove
             return Box::new(CrateToJoin { crate_info });
         }
 
@@ -93,27 +93,31 @@ impl CodegenBackend for DiamondfireCodegen {
                 ItemKind::ExternCrate(_, _,) => { },
                 ItemKind::Use(_, _,) => { },
                 ItemKind::Static(_, _, _, _,) => {
-                    // TODO
+                    // TODO: Statics
                 },
                 ItemKind::Const(_, _, _, _,) => { },
                 ItemKind::Fn { body, .. } => {
                     let def_id   = item_id.owner_id.to_def_id();
                     let generics = tcx.generics_of(def_id);
                     if (! generics.own_params.is_empty()) {
-                        todo!();
+                        // TODO: Generics
+                        continue;
                     }
                     let instance = Instance::mono(tcx, def_id);
                     let hir      = tcx.hir_body(body);
                     let mir      = tcx.optimized_mir(def_id);
+
+                    // println!();
+                    // for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
+                    //     println!("bb{:?}:", bbi);
+                    //     for stmt in &bb.statements {
+                    //         println!("  {:?}", stmt);
+                    //     }
+                    //     println!("  {:?}", bb.terminator().kind);
+                    // }
+
                     println!();
-                    for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
-                        println!("bb{:?}:", bbi);
-                        for stmt in &bb.statements {
-                            println!("  {:?}", stmt);
-                        }
-                        println!("  {:?}", bb.terminator().kind);
-                    }
-                    println!();
+                    println!("{:?}", lower1::mangle_name(tcx, def_id));
                     let cfr_tree = cfr::find_cfr_tree(&mir.basic_blocks);
                     println!("{:#}", cfr_tree);
                     // lower1::mir_to_dfmir(tcx, instance, mir);
@@ -122,7 +126,7 @@ impl CodegenBackend for DiamondfireCodegen {
                 ItemKind::Mod(_, _,) => { },
                 ItemKind::ForeignMod { .. } => { },
                 ItemKind::GlobalAsm { .. } => {
-                    // TODO
+                    diag::globalasm_unsupported(tcx.dcx(), item.span);
                 },
                 ItemKind::TyAlias(_, _, _,) => { },
                 ItemKind::Enum(_, _, _,) => { },
@@ -131,7 +135,7 @@ impl CodegenBackend for DiamondfireCodegen {
                 ItemKind::Trait(_, _, _, _, _, _, _,) => { },
                 ItemKind::TraitAlias(_, _, _, _,) => { },
                 ItemKind::Impl(_,) => {
-                    // TODO
+                    // TODO: Impl
                 }
             }
         }

@@ -49,7 +49,7 @@ pub fn rvalue_to_dfmir<'tcx>(
             binop_to_dfmir(dest, tcx, *op, df_left, df_right)
         },
 
-        Rvalue::NullaryOp(_, _) => {
+        Rvalue::NullaryOp(_) => {
             todo!()
         },
 
