@@ -37,14 +37,15 @@ use rustc_codegen_ssa::{
     },
     traits::CodegenBackend,
     CodegenResults,
+    CompiledModule,
+    ModuleKind,
     CrateInfo
 };
 use rustc_data_structures::fx::FxIndexMap;
-use rustc_hir::ItemKind;
 use rustc_metadata::EncodedMetadata;
-use rustc_middle::ty::{
-    Instance,
-    TyCtxt
+use rustc_middle::{
+    mir::mono::MonoItem,
+    ty::TyCtxt,
 };
 use rustc_query_system::dep_graph::{
     dep_node::WorkProductId,
@@ -54,12 +55,13 @@ use rustc_session::{
     config::OutputFilenames,
     Session
 };
+use rustc_span::DUMMY_SP;
 
 
 pub mod cfr;
 pub mod dfmir;
 
-pub mod lower1;
+// pub mod lower1;
 
 pub mod diag;
 
@@ -79,65 +81,98 @@ impl CodegenBackend for DiamondfireCodegen {
 
 
     fn codegen_crate<'tcx>(&self, tcx : TyCtxt<'tcx>) -> Box<dyn Any> {
-        let crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
+        let mut crate_info = CrateInfo::new(tcx, "diamondfire".to_string());
 
         let crate_name = crate_info.local_crate_name.to_string();
         if (crate_name == "compiler_builtins") { // TODO: Remove
             return Box::new(CrateToJoin { crate_info });
         }
 
-        for item_id in tcx.hir_crate_items(()).free_items() {
-            let item = tcx.hir_item(item_id);
-            match (item.kind) {
-                ItemKind::ExternCrate(_, _,) => { },
-                ItemKind::Use(_, _,) => { },
-                ItemKind::Static(_, _, _, _,) => {
-                    // TODO: Statics
-                },
-                ItemKind::Const(_, _, _, _,) => { },
-                ItemKind::Fn { body, .. } => {
-                    let def_id   = item_id.owner_id.to_def_id();
-                    let generics = tcx.generics_of(def_id);
-                    if (! generics.own_params.is_empty()) {
-                        // TODO: Generics
-                        continue;
-                    }
-                    let instance = Instance::mono(tcx, def_id);
-                    let hir      = tcx.hir_body(body);
-                    let mir      = tcx.optimized_mir(def_id);
-
-                    // println!();
-                    // for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
-                    //     println!("bb{:?}:", bbi);
-                    //     for stmt in &bb.statements {
-                    //         println!("  {:?}", stmt);
-                    //     }
-                    //     println!("  {:?}", bb.terminator().kind);
-                    // }
-
-                    println!();
-                    println!("{:?}", lower1::mangle_name(tcx, def_id));
-                    let cfr_tree = cfr::find_cfr_tree(&mir.basic_blocks);
-                    println!("{:#}", cfr_tree);
-                    // lower1::mir_to_dfmir(tcx, instance, mir);
-                },
-                ItemKind::Macro(_, _, _,) => { },
-                ItemKind::Mod(_, _,) => { },
-                ItemKind::ForeignMod { .. } => { },
-                ItemKind::GlobalAsm { .. } => {
-                    diag::globalasm_unsupported(tcx.dcx(), item.span);
-                },
-                ItemKind::TyAlias(_, _, _,) => { },
-                ItemKind::Enum(_, _, _,) => { },
-                ItemKind::Struct(_, _, _,) => { },
-                ItemKind::Union(_, _, _,) => { },
-                ItemKind::Trait(_, _, _, _, _, _, _,) => { },
-                ItemKind::TraitAlias(_, _, _, _,) => { },
-                ItemKind::Impl(_,) => {
-                    // TODO: Impl
+        for codegen_unit in tcx.collect_and_partition_mono_items(()).codegen_units { // TODO: Parallelise this
+            for (mono_item, _,) in codegen_unit.items() {
+                match (mono_item) {
+                    MonoItem::Fn(instance) => {
+                        let body  = tcx.instance_mir(instance.def);
+                        let attrs = tcx.codegen_fn_attrs(instance.def.def_id());
+                        println!();
+                        println!("FUNCTION: {:#?}", instance.def.def_id());
+                        // println!("{:#?}", attrs);
+                        // for (bbi, bb,) in body.basic_blocks.iter().enumerate() {
+                        //     println!("bb{:?}:", bbi);
+                        //     for stmt in &bb.statements {
+                        //         println!("  {:?}", stmt);
+                        //     }
+                        //     println!("  {:?}", bb.terminator().kind);
+                        // }
+                        // TODO
+                    },
+                    MonoItem::Static(def_id) => {
+                        // let (is_mut, ident, ty, _,) = tcx.hir_expect_item(def_id.expect_local()).expect_static();
+                        let alloc = tcx.eval_static_initializer(def_id).unwrap();
+                        println!();
+                        println!("STATIC {:?} = {:#?}", def_id, alloc);
+                        // TODO
+                    },
+                    MonoItem::GlobalAsm(_) => { diag::globalasm_unsupported(tcx.dcx(), mono_item.local_span(tcx).unwrap_or(DUMMY_SP)); },
                 }
             }
         }
+
+        // for item_id in tcx.hir_crate_items(()).free_items() {
+        //     let item = tcx.hir_item(item_id);
+        //     match (item.kind) {
+        //         ItemKind::ExternCrate(_, _,) => { },
+        //         ItemKind::Use(_, _,) => { },
+        //         ItemKind::Static(_, _, _, _,) => {
+        //             // TODO: Statics
+        //         },
+        //         ItemKind::Const(_, _, _, _,) => { },
+        //         ItemKind::Fn { body, .. } => {
+        //             let def_id   = item_id.owner_id.to_def_id();
+        //             let generics = tcx.generics_of(def_id);
+        //             if (generics.requires_monomorphization(tcx)) {
+        //             }
+        //             // if (! generics.own_params.is_empty()) {
+        //             //     // TODO: Generics
+        //             //     continue;
+        //             // }
+        //             let instance = Instance::mono(tcx, def_id);
+        //             let hir      = tcx.hir_body(body);
+        //             let mir      = tcx.optimized_mir(def_id);
+
+        //             // println!();
+        //             // for (bbi, bb,) in mir.basic_blocks.iter().enumerate() {
+        //             //     println!("bb{:?}:", bbi);
+        //             //     for stmt in &bb.statements {
+        //             //         println!("  {:?}", stmt);
+        //             //     }
+        //             //     println!("  {:?}", bb.terminator().kind);
+        //             // }
+
+        //             println!();
+        //             // println!("{:?}", lower1::mangle_name(tcx, def_id));
+        //             let cfr_tree = cfr::find_cfr_tree(&mir.basic_blocks);
+        //             println!("{:#}", cfr_tree);
+        //             // lower1::mir_to_dfmir(tcx, instance, mir);
+        //         },
+        //         ItemKind::Macro(_, _, _,) => { },
+        //         ItemKind::Mod(_, _,) => { },
+        //         ItemKind::ForeignMod { .. } => { },
+        //         ItemKind::GlobalAsm { .. } => {
+        //             diag::globalasm_unsupported(tcx.dcx(), item.span);
+        //         },
+        //         ItemKind::TyAlias(_, _, _,) => { },
+        //         ItemKind::Enum(_, _, _,) => { },
+        //         ItemKind::Struct(_, _, _,) => { },
+        //         ItemKind::Union(_, _, _,) => { },
+        //         ItemKind::Trait(_, _, _, _, _, _, _,) => { },
+        //         ItemKind::TraitAlias(_, _, _, _,) => { },
+        //         ItemKind::Impl(_,) => {
+        //             // TODO: Impl
+        //         }
+        //     }
+        // }
+
         Box::new(CrateToJoin {
             crate_info,
         })
@@ -153,12 +188,24 @@ impl CodegenBackend for DiamondfireCodegen {
 
         println!("\n{:?}", ongoing_codegen.crate_info.crate_types);
         println!("{}", ongoing_codegen.crate_info.local_crate_name);
-        println!("{:?}\n", outputs.with_extension("dfrs-cg"));
-        File::create(outputs.with_extension("dfrs-cg")).unwrap();
+        let file_path = outputs.with_extension("dfrs-cg");
+        println!("{:?}\n", file_path);
+        File::create(&file_path).unwrap();
         // TODO: Write data used by the linker.
 
         (CodegenResults {
-            modules          : Vec::new(),
+            modules                   : vec![
+                // CompiledModule {
+                //     name                  : ongoing_codegen.crate_info.local_crate_name.to_string(),
+                //     kind                  : ModuleKind::Regular,
+                //     object                : Some(file_path),
+                //     dwarf_object          : None,
+                //     bytecode              : None,
+                //     assembly              : None,
+                //     llvm_ir               : None,
+                //     links_from_incr_cache : Vec::new()
+                // }
+            ],
             allocator_module : None,
             crate_info       : ongoing_codegen.crate_info
         }, FxIndexMap::default(),)

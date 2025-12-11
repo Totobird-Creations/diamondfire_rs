@@ -64,11 +64,11 @@ pub mod prelude {
 }
 
 
-#[inline(always)]
-pub fn inlined(x : u64) -> u64 { // TODO: Remove
-    if (x > 10) {
-        x / 2
-    } else {
-        x * 2
-    }
-}
+// #[inline(always)]
+// pub fn inlined(x : u64) -> u64 { // TODO: Remove
+//     if (x > 10) {
+//         x / 2
+//     } else {
+//         x * 2
+//     }
+// }
