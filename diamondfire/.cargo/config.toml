@@ -1,5 +1,8 @@
 [build]
-target = "../diamondfire-unknown-unknown.json"
+target    = "../diamondfire-unknown-unknown.json"
+rustflags = [
+    "-Clink-args= --ccapi --track-backtraces --track-process-cpu"
+]
 
 [unstable]
 build-std = [ "core", "test" ]
