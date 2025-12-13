@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+#[allow(unused_imports)]
 use diamondfire::*;
 
 
@@ -14,7 +15,7 @@ pub fn a(x : f32) -> f32 {
     identity(x)
 }
 
-// #[unsafe(no_mangle)]
+#[unsafe(no_mangle)]
 pub fn b(x : i32) -> i32 {
     identity(x)
 }

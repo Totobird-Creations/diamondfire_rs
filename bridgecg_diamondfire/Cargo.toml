@@ -1,0 +1,11 @@
+[package]
+name        = "bridgecg_diamondfire"
+version     = "0.1.0"
+authors     = [ "Totobird Creations <https://github.com/Totobird-Creations>" ]
+description = "Codegen/linker common datatypes and functions for the DiamondFire block language compiler target"
+
+edition = "2024"
+
+
+[dependencies.bincode]
+version = "2.0"

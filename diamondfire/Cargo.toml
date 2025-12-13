@@ -26,3 +26,7 @@ path = "../diamondfire-sys"
 
 [dependencies.diamondfire-macros]
 path = "../diamondfire-macros"
+
+
+[profile.release]
+strip = true
