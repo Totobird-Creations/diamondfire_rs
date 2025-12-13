@@ -8,14 +8,19 @@ use core::{
     ops::Deref
 };
 
-mod to_string;
-pub use to_string::*;
-
 
 #[derive(Clone)]
 pub struct String {
     _opaque : df_string
 }
+
+impl String {
+    #[inline(always)]
+    pub fn raw(self) -> df_string { self._opaque }
+    #[inline(always)]
+    pub fn from_raw(raw : df_string) -> Self { Self { _opaque : raw } }
+}
+
 
 impl String {
 

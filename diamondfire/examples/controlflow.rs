@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use diamondfire::*;
+use diamondfire::prelude::*;
 
 
 // fn sequence(mut x : u64) -> u64 {
@@ -142,11 +142,6 @@ use diamondfire::*;
 //     }
 //     // bb6
 //     // return
-// }
-
-
-// fn inlining(mut x : u64) {
-//     x = inlined(x);
 // }
 
 

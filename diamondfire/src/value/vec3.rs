@@ -1,4 +1,22 @@
-use diamondfire_sys::*;
+use diamondfire_sys::{
+    df_string,
+    df_number,
+    df_vector,
+    DF_ACTION__setSPECIALSpace_variable__Vector,
+    DF_ACTION__setSPECIALSpace_variable__GetVectorComp,
+    DF_ACTION__setSPECIALSpace_variable__SetVectorComp,
+    DF_ACTION__setSPECIALSpace_variable__GetVectorLength,
+    DF_ACTION__setSPECIALSpace_variable__SetVectorLength,
+    DF_ACTION__setSPECIALSpace_variable__AddVectors,
+    DF_ACTION__setSPECIALSpace_variable__SubtractVectors,
+    DF_ACTION__setSPECIALSpace_variable__MultiplyVector,
+    DF_ACTION__setSPECIALSpace_variable__RotateAroundAxis,
+    DF_ACTION__setSPECIALSpace_variable__RotateAroundVec,
+    DF_ACTION__setSPECIALSpace_variable__ReflectVector,
+    DF_ACTION__setSPECIALSpace_variable__CrossProduct,
+    DF_ACTION__setSPECIALSpace_variable__DotProduct,
+    DF_ACTION__setSPECIALSpace_variable__DirectionName
+};
 use diamondfire_macros::string_enum;
 use core::{
     intrinsics::transmute_unchecked,
@@ -11,7 +29,14 @@ use core::{
 #[derive(Clone, Copy)]
 #[repr(transparent)]
 pub struct Vec3 {
-    pub(crate) _opaque : df_vector
+    _opaque : df_vector
+}
+
+impl Vec3 {
+    #[inline(always)]
+    pub fn raw(self) -> df_vector { self._opaque }
+    #[inline(always)]
+    pub fn from_raw(raw : df_vector) -> Self { Self { _opaque : raw } }
 }
 
 
@@ -28,7 +53,7 @@ impl Vec3 {
             df_number::from_f64(y),
             df_number::from_f64(z)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a vector with all elements set to `v`.
@@ -98,7 +123,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(x)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a vector by replacing the `y` element of `self`.
@@ -112,7 +137,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(y)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Creates a vector by replacing the `z` element of `self`.
@@ -126,7 +151,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(z)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -177,7 +202,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(len)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -194,7 +219,7 @@ impl Add<Vec3> for Vec3 {
             self._opaque,
             rhs._opaque
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -211,7 +236,7 @@ impl Sub<Vec3> for Vec3 {
             self._opaque,
             rhs._opaque
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -228,7 +253,7 @@ impl Mul<f64> for Vec3 {
             self._opaque,
             df_number::from_f64(rhs)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -256,7 +281,7 @@ impl Vec3 {
             out.as_mut_ptr(),
             self._opaque
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -276,7 +301,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(angle)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Rotates `self` around the Y axis by `angle` radians.
@@ -291,7 +316,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(angle)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Rotates `self` around the Z axis by `angle` radians.
@@ -306,7 +331,7 @@ impl Vec3 {
             self._opaque,
             df_number::from_f64(angle)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Rotates `self` around the `axis` by `angle` radians.
@@ -321,7 +346,7 @@ impl Vec3 {
             axis._opaque,
             df_number::from_f64(angle)
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Reflects `self` across the `normal` plane.
@@ -334,7 +359,7 @@ impl Vec3 {
             self._opaque,
             normal._opaque
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
 }
@@ -352,7 +377,7 @@ impl Vec3 {
             self._opaque,
             rhs._opaque
         );
-        Self { _opaque : out.assume_init() }
+        Self::from_raw(out.assume_init())
     } }
 
     /// Calculates the dot product of `self` and `rhs`.
