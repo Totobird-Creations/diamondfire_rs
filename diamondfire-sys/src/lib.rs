@@ -26,11 +26,9 @@ compile_error!("diamondfire-sys docs should not be compiled for `diamondfire-unk
 mod ty;
 pub use ty::*;
 
-mod var;
-pub use var::*;
+pub mod var;
 
-mod consts;
-pub use consts::*;
+pub mod consts;
 
 mod generated;
 pub use generated::*;

@@ -1,3 +1,8 @@
+#![feature(
+    map_try_insert
+)]
+
+
 use bincode::{ Encode, Decode };
 
 pub mod extern_names;

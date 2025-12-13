@@ -6,6 +6,9 @@ description = "Codegen/linker common datatypes and functions for the DiamondFire
 
 edition = "2024"
 
+[lints.rust]
+unused_parens = "allow"
+
 
 [dependencies.bincode]
 version = "2.0"
