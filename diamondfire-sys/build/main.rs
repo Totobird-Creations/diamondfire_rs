@@ -43,7 +43,7 @@ fn main() {
                 gamevalue : gamevalue.icon.name.clone()
             })) {
                 write_attributes(&mut f, 4, &gamevalue.icon, None);
-                writeln!(f, "    pub safe fn {}(target : *const df_string) -> {};", ident, gamevalue.icon.return_type.unwrap().type_name().unwrap()).unwrap();
+                writeln!(f, "    pub fn {}(target : *const df_string) -> {};", ident, gamevalue.icon.return_type.unwrap().type_name().unwrap()).unwrap();
             }
         }
         writeln!(f, "}}").unwrap();
