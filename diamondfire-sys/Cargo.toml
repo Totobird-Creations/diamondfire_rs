@@ -36,3 +36,6 @@ features = [ "derive" ]
 
 [build-dependencies.serde_json]
 version = "1.0"
+
+[build-dependencies.bridgecg_diamondfire]
+path = "../bridgecg_diamondfire"

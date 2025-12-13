@@ -2,10 +2,10 @@
 
 
 #![allow(unexpected_cfgs)]
-#![forbid(missing_docs)]
+#![warn(missing_docs)] // TODO: Forbid
 
 #![feature(
-    str_from_raw_parts
+    extern_types
 )]
 
 #![cfg_attr(doc, feature(doc_cfg))]
@@ -23,28 +23,14 @@ compile_error!(concat!("diamondfire-sys does not support the `", env!("TARGET"),
 compile_error!("diamondfire-sys docs should not be compiled for `diamondfire-unknown-unknown`");
 
 
-#[forbid(missing_docs)]
 mod ty;
 pub use ty::*;
 
-unsafe extern "C" {
+mod var;
+pub use var::*;
 
-    /// Creates a new local (`LINE`) variable by name, returning a pointer to it.
-    pub unsafe fn DF_VAR__NewLocal(name : df_string) -> *mut df_opaque;
-
-    /// Creates a new thread-local (`LOCAL`) variable by name, returning a pointer to it.
-    pub unsafe fn DF_VAR__NewThreadLocal(name : df_string) -> *mut df_opaque;
-
-    /// Creates a new session (`GAME`) variable by name, returning a pointer to it.
-    pub unsafe fn DF_VAR__NewSession(name : df_string) -> *mut df_opaque;
-
-    /// Creates a new persistent (`SAVE`) variable by name, returning a pointer to it.
-    pub unsafe fn DF_VAR__NewPersistent(name : df_string) -> *mut df_opaque;
-
-    /// Returns the name of the variable behind a pointer.
-    pub unsafe fn DF_VAR__NameOf(ptr : *mut df_opaque) -> df_string;
-
-}
+mod consts;
+pub use consts::*;
 
 mod generated;
 pub use generated::*;

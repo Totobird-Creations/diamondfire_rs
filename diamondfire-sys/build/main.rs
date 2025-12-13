@@ -1,6 +1,7 @@
 #![expect(unused_parens)]
 
 
+use bridgecg_diamondfire::extern_names::ExternNameMap;
 use std::{
     collections::HashSet,
     env,
@@ -23,86 +24,98 @@ fn main() {
 
     let ad = read_json::<_, ActionDump>(File::open("../actiondump.json").unwrap()).unwrap();
 
-    {
-        let mut taken_names = HashSet::new();
-        let mut f = File::create("src/generated/sound.rs").unwrap();
-        writeln!(f, "use crate::*;").unwrap();
-        writeln!(f, "unsafe extern \"C\" {{").unwrap();
-        for sound in ad.sounds {
-            let name = identify(&sound.icon.name);
-            if (taken_names.contains(&name)) { continue; }
-            write_attributes(&mut f, 4, &sound.icon, None);
-            writeln!(f, "    pub safe fn DF_SOUND__{}(pitch : df_number, volume : df_number) -> df_sound;", name).unwrap();
-            for variant in sound.variants {
-                writeln!(f, "    pub safe fn DF_SOUND__{}__{}(pitch : df_number, volume : df_number) -> df_sound;", name, identify(&variant.id)).unwrap();
-            }
-            taken_names.insert(name);
-        }
-        writeln!(f, "}}").unwrap();
-    }
+    let mut extern_names = ExternNameMap::default();
+
+    // {
+    //     let mut taken_names = HashSet::new();
+    //     let mut f = File::create("src/generated/sound.rs").unwrap();
+    //     writeln!(f, "use crate::*;").unwrap();
+    //     writeln!(f, "unsafe extern \"C\" {{").unwrap();
+    //     for sound in ad.sounds {
+    //         let name = identify(&sound.icon.name);
+    //         if (taken_names.contains(&name)) { continue; }
+    //         write_attributes(&mut f, 4, &sound.icon, None);
+    //         writeln!(f, "    pub safe fn DF_SOUND__{}(pitch : df_number, volume : df_number) -> df_sound;", name).unwrap();
+    //         for variant in sound.variants {
+    //             writeln!(f, "    pub safe fn DF_SOUND__{}__{}(pitch : df_number, volume : df_number) -> df_sound;", name, identify(&variant.id)).unwrap();
+    //         }
+    //         taken_names.insert(name);
+    //     }
+    //     writeln!(f, "}}").unwrap();
+    // }
+
+    // {
+    //     let mut f = File::create("src/generated/particle.rs").unwrap();
+    //     writeln!(f, "use crate::*;").unwrap();
+    //     writeln!(f, "unsafe extern \"C\" {{").unwrap();
+    //     for mut particle in ad.particles {
+    //         write_attributes(&mut f, 4, &particle.icon, None);
+    //         write!(f, "    pub safe fn DF_PARTICLE__{}__", identify(&particle.particle.to_lowercase())).unwrap();
+    //         particle.fields.sort();
+    //         for (i, field,) in particle.fields.iter().enumerate() {
+    //             if (i > 0) { write!(f, "_").unwrap(); }
+    //             write!(f, "{:?}", field).unwrap();
+    //         }
+    //         write!(f, "(amount : df_number, spread_x : df_number, spread_y : df_number").unwrap();
+    //         for field in &particle.fields {
+    //             write!(f, ", {} : {}", field.camel_name(), field.type_name()).unwrap();
+    //         }
+    //         writeln!(f, ") -> df_particle;").unwrap();
+    //     }
+    //     writeln!(f, "}}").unwrap();
+    // }
+
+    // {
+    //     let mut f = File::create("src/generated/potion.rs").unwrap();
+    //     writeln!(f, "use crate::*;").unwrap();
+    //     writeln!(f, "unsafe extern \"C\" {{").unwrap();
+    //     for potion in ad.potions {
+    //         write_attributes(&mut f, 4, &potion.icon, None);
+    //         writeln!(f, "    pub safe fn DF_POTION__{}(amplifier : df_number, duration : df_number) -> df_potion;", identify(&potion.icon.name)).unwrap();
+    //     }
+    //     writeln!(f, "}}").unwrap();
+    // }
+
+    // {
+    //     let mut f = File::create("src/generated/gamevalue.rs").unwrap();
+    //     writeln!(f, "use crate::*;").unwrap();
+    //     writeln!(f, "unsafe extern \"C\" {{").unwrap();
+    //     for gamevalue in ad.game_values {
+    //         write_attributes(&mut f, 4, &gamevalue.icon, None);
+    //         writeln!(f, "    pub safe fn DF_GAMEVALUE__{}(target : df_string) -> {};", identify(&gamevalue.icon.name), gamevalue.icon.return_type.unwrap().type_name().unwrap()).unwrap();
+    //     }
+    //     writeln!(f, "}}").unwrap();
+    // }
+
+    // {
+    //     let mut f = File::create("src/generated/action.rs").unwrap();
+    //     writeln!(f, "use crate::*;").unwrap();
+    //     writeln!(f, "unsafe extern \"C\" {{").unwrap();
+    //     for action in ad.actions {
+    //         if (action.codeblock == "PLAYER EVENT" || action.codeblock == "ENTITY EVENT" || action.codeblock == "FUNCTION" || action.codeblock == "CALL FUNCTION" || action.codeblock == "PROCESS" || action.codeblock == "START PROCESS") { continue; }
+    //         write_attributes(&mut f, 4, &action.icon, Some(&action.tags));
+    //         write!(f, "    pub unsafe fn DF_ACTION__{}__{}", identify(&action.codeblock.to_lowercase()), identify(&action.name)).unwrap();
+    //         write!(f, "(").unwrap();
+    //         for tag in &action.tags {
+    //             write!(f, "{} : df_string, ", identify(&tag.name)).unwrap();
+    //         }
+    //         write!(f, "...)").unwrap();
+    //         if (action.codeblock == "CONTROL" && (action.name == "Return" || action.name == "ReturnNTimes" || action.name == "End")) {
+    //             write!(f, " -> !").unwrap();
+    //         }
+    //         writeln!(f, ";").unwrap();
+    //     }
+    //     writeln!(f, "}}").unwrap();
+    // }
 
     {
-        let mut f = File::create("src/generated/particle.rs").unwrap();
-        writeln!(f, "use crate::*;").unwrap();
-        writeln!(f, "unsafe extern \"C\" {{").unwrap();
-        for mut particle in ad.particles {
-            write_attributes(&mut f, 4, &particle.icon, None);
-            write!(f, "    pub safe fn DF_PARTICLE__{}__", identify(&particle.particle.to_lowercase())).unwrap();
-            particle.fields.sort();
-            for (i, field,) in particle.fields.iter().enumerate() {
-                if (i > 0) { write!(f, "_").unwrap(); }
-                write!(f, "{:?}", field).unwrap();
-            }
-            write!(f, "(amount : df_number, spread_x : df_number, spread_y : df_number").unwrap();
-            for field in &particle.fields {
-                write!(f, ", {} : {}", field.camel_name(), field.type_name()).unwrap();
-            }
-            writeln!(f, ") -> df_particle;").unwrap();
-        }
-        writeln!(f, "}}").unwrap();
+        let mut f = File::create("src/generated/extern_names.bin").unwrap();
+        extern_names.encode_write(&mut f).unwrap();
     }
-
     {
-        let mut f = File::create("src/generated/potion.rs").unwrap();
-        writeln!(f, "use crate::*;").unwrap();
-        writeln!(f, "unsafe extern \"C\" {{").unwrap();
-        for potion in ad.potions {
-            write_attributes(&mut f, 4, &potion.icon, None);
-            writeln!(f, "    pub safe fn DF_POTION__{}(amplifier : df_number, duration : df_number) -> df_potion;", identify(&potion.icon.name)).unwrap();
-        }
-        writeln!(f, "}}").unwrap();
-    }
-
-    {
-        let mut f = File::create("src/generated/gamevalue.rs").unwrap();
-        writeln!(f, "use crate::*;").unwrap();
-        writeln!(f, "unsafe extern \"C\" {{").unwrap();
-        for gamevalue in ad.game_values {
-            write_attributes(&mut f, 4, &gamevalue.icon, None);
-            writeln!(f, "    pub safe fn DF_GAMEVALUE__{}(target : df_string) -> {};", identify(&gamevalue.icon.name), gamevalue.icon.return_type.unwrap().type_name().unwrap()).unwrap();
-        }
-        writeln!(f, "}}").unwrap();
-    }
-
-    {
-        let mut f = File::create("src/generated/action.rs").unwrap();
-        writeln!(f, "use crate::*;").unwrap();
-        writeln!(f, "unsafe extern \"C\" {{").unwrap();
-        for action in ad.actions {
-            if (action.codeblock == "PLAYER EVENT" || action.codeblock == "ENTITY EVENT" || action.codeblock == "FUNCTION" || action.codeblock == "CALL FUNCTION" || action.codeblock == "PROCESS" || action.codeblock == "START PROCESS") { continue; }
-            write_attributes(&mut f, 4, &action.icon, Some(&action.tags));
-            write!(f, "    pub unsafe fn DF_ACTION__{}__{}", identify(&action.codeblock.to_lowercase()), identify(&action.name)).unwrap();
-            write!(f, "(").unwrap();
-            for tag in &action.tags {
-                write!(f, "{} : df_string, ", identify(&tag.name)).unwrap();
-            }
-            write!(f, "...)").unwrap();
-            if (action.codeblock == "CONTROL" && (action.name == "Return" || action.name == "ReturnNTimes" || action.name == "End")) {
-                write!(f, " -> !").unwrap();
-            }
-            writeln!(f, ";").unwrap();
-        }
-        writeln!(f, "}}").unwrap();
+        let mut f = File::create("src/generated/extern_names.rs").unwrap();
+        writeln!(f, "#[unsafe(no_mangle)]").unwrap();
+        writeln!(f, "static __PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES : &[u8] = include_bytes!(\"extern_names.bin\");").unwrap();
     }
 
 }
