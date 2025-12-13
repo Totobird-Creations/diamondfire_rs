@@ -26,6 +26,9 @@ pub enum ExternName {
         codeblock    : ActionBlockKind,
         action       : String,
         tag_defaults : Vec<String>
+    },
+    Gamevalue {
+        gamevalue : String
     }
 }
 
