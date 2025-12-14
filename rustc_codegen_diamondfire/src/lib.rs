@@ -3,7 +3,8 @@
     f128,
     debug_closure_helpers,
     map_try_insert,
-    assert_matches
+    assert_matches,
+    box_patterns
 )]
 
 
@@ -41,9 +42,11 @@ use rustc_hir::{
     Expr,
     ExprKind,
     Attribute,
+    AttrItem,
     attrs::{
         AttributeKind,
-        Linkage
+        Linkage,
+        InlineAttr
     }
 };
 use rustc_middle::{
@@ -133,7 +136,8 @@ impl CodegenBackend for DiamondfireCodegen {
 
         for codegen_unit in tcx.collect_and_partition_mono_items(()).codegen_units { // TODO: Parallelise this
             for (mono_item, mono_item_data,) in codegen_unit.items() {
-                let src_doc  = tcx.get_all_attrs(mono_item.def_id()).iter()
+                let all_attrs = tcx.get_all_attrs(mono_item.def_id());
+                let src_doc   = all_attrs.iter()
                     .filter_map(|attr| {
                         if let Attribute::Parsed(AttributeKind::DocComment { comment, .. }) = attr { Some(comment.as_str().trim()) }
                         else { None }
@@ -141,16 +145,16 @@ impl CodegenBackend for DiamondfireCodegen {
                     .flat_map(|attr_comment| attr_comment.split("\n").map(|line| line.trim()))
                     .flat_map(|attr_comment| ["\n", attr_comment,]).skip(1)
                     .collect::<String>();
-                let name     = mono_item.symbol_name(tcx).to_string();
-                let attrs    = tcx.codegen_fn_attrs(mono_item.def_id());
+                let name  = mono_item.symbol_name(tcx).to_string();
+                let attrs = tcx.codegen_fn_attrs(mono_item.def_id());
                 match (mono_item) {
 
                     MonoItem::Fn(instance) => {
                         let unique_id = HashingUtil::hash_fn_def(tcx, instance.def.def_id(), instance.args);
                         // let src_name = tcx.def_path_str_with_args(mono_item.def_id(), instance.args); // Panics on some items.
-                        let src_name  = tcx.def_path_debug_str(mono_item.def_id());
-                        let body      = tcx.instance_mir(instance.def);
-                        // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, );
+                        let src_name = tcx.def_path_debug_str(mono_item.def_id());
+                        let body     = tcx.instance_mir(instance.def);
+                        // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, unique_id);
                         // for (bbi, bb,) in body.basic_blocks.iter().enumerate() {
                         //     println!("bb{:?}:", bbi);
                         //     for stmt in &bb.statements {
@@ -187,6 +191,7 @@ impl CodegenBackend for DiamondfireCodegen {
                                 || attrs.symbol_name.is_some()
                             ),
                             inline   : mono_item_data.inlined
+                                || attrs.inline != InlineAttr::Never
                         });
                     },
 

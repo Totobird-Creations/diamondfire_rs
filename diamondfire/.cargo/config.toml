@@ -2,7 +2,7 @@
 target    = "../diamondfire-unknown-unknown.json"
 rustflags = [
     "-Clink-args= --ccapi --track-backtraces --track-process-cpu --color always",
-    "-Zinline-mir=no"
+    # "-Zinline-mir=no"
 ]
 
 [unstable]
