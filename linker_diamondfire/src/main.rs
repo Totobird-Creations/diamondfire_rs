@@ -1,5 +1,10 @@
+use bridgecg_diamondfire::{
+    extern_names::ExternNameMap,
+    items::BridgeItems
+};
 use std::{
     env,
+    fs::File,
     path::PathBuf
 };
 
@@ -100,6 +105,17 @@ impl Cli {
 
 fn main() {
     let cli = Cli::parse();
-    println!("{:#?}", cli);
-    todo!();
+
+    let mut extern_names = None;
+    for input_path in cli.input_paths {
+        let mut f = File::open(input_path).unwrap();
+        let bridge_items = BridgeItems::read_decode(&mut f).unwrap();
+        if let Some(en) = bridge_items.extern_names {
+            assert!(extern_names.is_none());
+            extern_names = Some(en);
+        }
+    }
+    let extern_names = ExternNameMap::decode(&extern_names.unwrap());
+
+    todo!()
 }

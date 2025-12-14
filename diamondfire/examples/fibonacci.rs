@@ -2,17 +2,23 @@
 #![no_main]
 
 
-use diamondfire_bind::prelude::*;
+use diamondfire::prelude::*;
 
 
 #[unsafe(no_mangle)]
-#[expect(non_snake_case)]
-pub fn DIAMONDFIRE_PlayerEvent__Join(default : PlayerSel) {
+pub fn fibonacci(n : usize) {
     let mut a = 1usize;
     let mut b = 1usize;
-    for _i in 0..10 {
+    for _i in 0..n {
         let c = a + b;
-        default.send_actionbar(a.to_string());
+        unsafe { diamondfire_sys::action::DF_ACTION__Control__PrintDebug( // TODO: Replace with println
+            "All".as_ptr() as *const diamondfire_sys::df_string,
+            "No Spaces".as_ptr() as *const diamondfire_sys::df_string,
+            "None".as_ptr() as *const diamondfire_sys::df_string,
+            "Default".as_ptr() as *const diamondfire_sys::df_string,
+            "Debug".as_ptr() as *const diamondfire_sys::df_string,
+            c
+        ); }
         a = b;
         b = c;
     };

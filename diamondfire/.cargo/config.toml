@@ -1,7 +1,8 @@
 [build]
 target    = "../diamondfire-unknown-unknown.json"
 rustflags = [
-    "-Clink-args= --ccapi --track-backtraces --track-process-cpu"
+    "-Clink-args= --ccapi --track-backtraces --track-process-cpu",
+    "-Zinline-mir=no"
 ]
 
 [unstable]

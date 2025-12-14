@@ -19,3 +19,7 @@ unused_parens = "allow"
 
 [lints.clippy]
 double_parens = "allow"
+
+
+[dependencies.bridgecg_diamondfire]
+path = "../bridgecg_diamondfire"

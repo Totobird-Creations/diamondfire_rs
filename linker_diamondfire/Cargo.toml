@@ -9,3 +9,7 @@ edition = "2024"
 
 [lints.rust]
 unused_parens = "allow"
+
+
+[dependencies.bridgecg_diamondfire]
+path = "../bridgecg_diamondfire"

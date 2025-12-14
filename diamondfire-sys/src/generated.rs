@@ -1,3 +1,4 @@
+#[doc(hidden)]
 mod extern_names;
 
 pub mod action;

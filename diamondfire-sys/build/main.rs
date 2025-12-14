@@ -77,7 +77,7 @@ fn main() {
             if (extern_names.declare(ident.clone(), ExternName::Action {
                 codeblock,
                 action       : action.name.clone(),
-                tag_defaults : action.tags.iter().map(|tag| tag.name.clone()).collect::<Vec<_>>()
+                tag_defaults : action.tags.iter().map(|tag| tag.default.clone()).collect::<Vec<_>>()
             })) {
                 write_attributes(&mut f, 4, &action.icon, Some(&action.tags));
                 write!(f, "    pub unsafe fn {}", ident).unwrap();
@@ -102,8 +102,7 @@ fn main() {
     {
         let mut f = File::create("src/generated/extern_names.rs").unwrap();
         writeln!(f, "mod not_accessible_under_any_circumstance {{").unwrap();
-        writeln!(f, "    #[unsafe(no_mangle)]").unwrap();
-        writeln!(f, "    static __PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES : &[u8] = include_bytes!(\"extern_names.bin\");").unwrap();
+        writeln!(f, "    const __PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES : &[u8] = include_bytes!(\"extern_names.bin\");").unwrap();
         writeln!(f, "}}").unwrap();
     }
 

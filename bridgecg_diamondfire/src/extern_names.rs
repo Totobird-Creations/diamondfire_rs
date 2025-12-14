@@ -11,7 +11,7 @@ use std::{
 use bincode::{ Encode, Decode };
 
 
-#[derive(Encode, Decode)]
+#[derive(Encode, Decode, Debug)]
 pub struct ExternNameMap {
     pub names : HashMap<String, ExternName>
 }
@@ -122,6 +122,10 @@ impl ExternNameMap {
                 true
             }
         }
+    }
+
+    pub fn decode(b : &[u8]) -> Result<Self, bincode::error::DecodeError> {
+        bincode::decode_from_slice(b, bincode::config::standard()).map(|(enm, _,)| enm)
     }
 
     pub fn encode_write<W : Write>(&self, f : &mut W) -> Result<(), bincode::error::EncodeError> {
