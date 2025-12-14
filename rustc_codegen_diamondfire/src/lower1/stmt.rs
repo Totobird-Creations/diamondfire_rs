@@ -1,6 +1,6 @@
 use crate::diag;
 use super::Lower1Ctx;
-use bridgecg_diamondfire::mir::DfMirStmt;
+use bridgecg_diamondfire::dfmir::DfMirStmt;
 use rustc_middle::mir::{
     Statement,
     StatementKind

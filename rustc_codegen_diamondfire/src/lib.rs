@@ -21,7 +21,7 @@ extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_stable_hash;
 
-use bridgecg_diamondfire::items::{
+use bridgecg_diamondfire::bridge_items::{
     BridgeItems,
     FunctionItem,
     FunctionItemInline

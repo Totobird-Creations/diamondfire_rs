@@ -1,4 +1,4 @@
-use crate::mir::DfMirStmt;
+use crate::dfmir::DfMirStmt;
 use core::fmt::{ self, Debug, Formatter };
 use std::{
     io::{ Read, Write },

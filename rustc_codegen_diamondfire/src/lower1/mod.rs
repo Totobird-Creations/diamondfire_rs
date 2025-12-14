@@ -1,5 +1,5 @@
 use crate::cfr::{ CfrTree, CfrBranch };
-use bridgecg_diamondfire::mir::DfMirStmt;
+use bridgecg_diamondfire::dfmir::DfMirStmt;
 use rustc_middle::{
     mir::Body,
     ty::TyCtxt

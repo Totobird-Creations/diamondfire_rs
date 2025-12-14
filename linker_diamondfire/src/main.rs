@@ -15,7 +15,7 @@ use ctx::LinkingCtx;
 
 use bridgecg_diamondfire::{
     extern_names::ExternNameMap,
-    items::BridgeItems
+    bridge_items::BridgeItems
 };
 use std::{
     fs::File,

@@ -7,7 +7,12 @@ description = "Codegen/linker common datatypes and functions for the DiamondFire
 edition = "2024"
 
 [features]
-rustc = [ ]
+extern_names = [ "dep:bincode" ]
+bridge_items = [ "dep:bincode", "dfmir" ]
+dfmir        = [ "dep:bincode", "rustc_private" ]
+dflir        = [ ]
+
+rustc_private = [ ]
 
 [package.metadata.rust-analyzer]
 rustc_private = true
@@ -17,4 +22,5 @@ unused_parens = "allow"
 
 
 [dependencies.bincode]
-version = "2.0"
+version  = "2.0"
+optional = true

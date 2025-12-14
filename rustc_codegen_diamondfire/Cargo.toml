@@ -23,4 +23,4 @@ double_parens = "allow"
 
 [dependencies.bridgecg_diamondfire]
 path     = "../bridgecg_diamondfire"
-features = [ "rustc" ]
+features = [ "bridge_items" ]
