@@ -1,77 +1,43 @@
-use crate::dfmir::{
-    DfMirFn,
-    DfMirStmt
-};
-use super::{
-    place_to_dfmir,
-    rvalue_to_dfmir
-};
-use rustc_middle::{
-    mir::{
-        Statement,
-        StatementKind,
-        NonDivergingIntrinsic
-    },
-    ty::TyCtxt
+use crate::diag;
+use super::Lower1Ctx;
+use bridgecg_diamondfire::mir::DfMirStmt;
+use rustc_middle::mir::{
+    Statement,
+    StatementKind
 };
 
 
 pub fn stmt_to_dfmir<'tcx>(
-    dest : &mut DfMirFn,
-    tcx  : TyCtxt<'tcx>,
-    stmt : &Statement<'tcx>
+    ctx  : &mut Lower1Ctx<'tcx>,
+    stmt : &Statement<'tcx>,
+    out  : &mut Vec<DfMirStmt>
 ) {
     match (&stmt.kind) {
 
-        StatementKind::Assign(assign) => {
-            let (place, value,) = &**assign;
-            let mut df_place = place_to_dfmir(dest, tcx, place, false);
-            let     df_value = rvalue_to_dfmir(dest, tcx, value);
-            if (df_place.project.is_empty()) {
-                let ty = df_value.ty(dest).into_owned();
-                df_place.ty = Some(ty.clone());
-                dest.insert_local(df_place.local, ty);
-            }
-            dest.push_stmt(DfMirStmt::SetPlace { place : df_place, value : df_value });
+        StatementKind::Assign(box (place, operand,))
+        => {
+            // TODO
         },
 
-        StatementKind::FakeRead(_) => { unreachable!("disallowed after drop elaboration") },
+        StatementKind::SetDiscriminant { .. }
+        => todo!(),
 
-        StatementKind::SetDiscriminant { .. } => {
-            todo!()
-        },
+        StatementKind::Intrinsic(_)
+        => todo!(),
 
-        StatementKind::StorageLive(_) => { },
+        StatementKind::FakeRead(_)
+        | StatementKind::AscribeUserType(_, _)
+        => { diag::disallowed_post_drop_elaboration(); },
 
-        StatementKind::StorageDead(_) => { },
-
-        StatementKind::Retag(_, _) => { unimplemented!() },
-
-        StatementKind::PlaceMention(_) => {
-            todo!()
-        },
-
-        StatementKind::AscribeUserType(_, _) => { unreachable!("disallowed after drop elaboration") },
-
-        StatementKind::Coverage(_) => { unimplemented!() },
-
-        StatementKind::Intrinsic(intrinsic) => { match (&**intrinsic) {
-
-            NonDivergingIntrinsic::Assume(_) => {
-                todo!()
-            },
-
-            NonDivergingIntrinsic::CopyNonOverlapping(_) => {
-                todo!()
-            }
-
-        } },
-
-        StatementKind::ConstEvalCounter => { },
-
-        StatementKind::Nop => { },
-
-        StatementKind::BackwardIncompatibleDropHint { .. } => { }
+        StatementKind::StorageLive(_)
+        | StatementKind::StorageDead(_)
+        | StatementKind::Retag(_, _)
+        | StatementKind::PlaceMention(_)
+        | StatementKind::Coverage(_)
+        | StatementKind::ConstEvalCounter
+        | StatementKind::Nop
+        | StatementKind::BackwardIncompatibleDropHint { .. }
+        => { }
 
     }
 }

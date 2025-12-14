@@ -38,6 +38,8 @@ pub enum DfMirTy<'tcx> {
     /// 64-bit fixed-point number with three decimal places of precision.
     FFixed,
 
+    Array(Box<DfMirTy<'tcx>>, u32),
+
     /// Not a valid value. Only used during lowering.
     StrPointee,
     /// Not a valid value. Only used during lowering.
@@ -80,7 +82,7 @@ impl<'tcx> From<&TyKind<'tcx>> for DfMirTy<'tcx> {
             TyKind::Adt(_, _)          => todo!(),
             TyKind::Foreign(_)         => todo!(),
             TyKind::Str                => Self::StrPointee,
-            TyKind::Array(_, _)        => todo!(),
+            TyKind::Array(ty, len)     => Self::Array(Box::new(DfMirTy::from(ty.kind())), len.to_value().valtree.try_to_scalar_int().unwrap().to_u32()),
             TyKind::Pat(_, _)          => todo!(),
             TyKind::Slice(ty)          => Self::SlicePointee(Box::new(DfMirTy::from(ty.kind()))),
             TyKind::RawPtr(ty, _,)     => Self::Pointer(Box::new(DfMirTy::from(ty.kind()))),

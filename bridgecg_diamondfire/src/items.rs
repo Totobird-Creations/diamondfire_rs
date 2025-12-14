@@ -1,3 +1,4 @@
+use crate::mir::DfMirStmt;
 use core::fmt::{ self, Debug, Formatter };
 use std::{
     io::{ Read, Write },
@@ -30,8 +31,27 @@ pub struct FunctionItem {
     pub exported : bool,
 
     /// Whether the function should be inlined.
-    /// If `exported` is `true`, this is ignored.
-    pub inline   : bool
+    /// This is ignored if `exported` is `true`.
+    pub inline   : FunctionItemInline,
+
+    pub body     : Vec<DfMirStmt>
+
+}
+
+
+#[derive(Encode, Decode, Debug)]
+pub enum FunctionItemInline {
+
+    /// Determine whether the function should be inlined based on dfJSON cost, usages, etc.
+    Maybe,
+
+    /// Never inline the function.
+    Never,
+
+    /// Always inline the function.
+    ///
+    /// This will be ignored if a pointer to the function is acquired, or this function can call itself directly or indirectly.
+    Always
 
 }
 

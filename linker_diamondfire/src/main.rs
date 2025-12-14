@@ -70,7 +70,7 @@ fn main() {
 
     while let Some(fn_id) = ctx.pop_queued_fn() {
         let bridge_fn = bridge_items.functions.get(&fn_id).unwrap();
-        println!("{:#?}", bridge_fn);
+        println!("{}: {:#?}", fn_id, bridge_fn);
     }
 
     todo!();

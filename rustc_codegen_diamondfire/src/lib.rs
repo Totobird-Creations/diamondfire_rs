@@ -23,7 +23,8 @@ extern crate rustc_stable_hash;
 
 use bridgecg_diamondfire::items::{
     BridgeItems,
-    FunctionItem
+    FunctionItem,
+    FunctionItemInline
 };
 use core::any::Any;
 use std::fs::File;
@@ -42,7 +43,6 @@ use rustc_hir::{
     Expr,
     ExprKind,
     Attribute,
-    AttrItem,
     attrs::{
         AttributeKind,
         Linkage,
@@ -72,9 +72,7 @@ use rustc_span::{
 
 
 pub mod cfr;
-pub mod dfmir;
-
-// pub mod lower1;
+pub mod lower1;
 
 pub mod diag;
 
@@ -111,7 +109,7 @@ impl CodegenBackend for DiamondfireCodegen {
         let mut bridge_items = BridgeItems::default();
 
         let crate_name = crate_info.local_crate_name.to_string();
-        if (crate_name == "compiler_builtins") { // TODO: Remove
+        if (crate_name == "compiler_builtins" || crate_name == "core") { // TODO: Remove
             return Box::new(CrateToJoin { crate_info, bridge_items });
         }
 
@@ -150,10 +148,12 @@ impl CodegenBackend for DiamondfireCodegen {
                 match (mono_item) {
 
                     MonoItem::Fn(instance) => {
-                        let unique_id = HashingUtil::hash_fn_def(tcx, instance.def.def_id(), instance.args);
+                        let fn_id = HashingUtil::hash_fn_def(tcx, instance.def.def_id(), instance.args);
                         // let src_name = tcx.def_path_str_with_args(mono_item.def_id(), instance.args); // Panics on some items.
                         let src_name = tcx.def_path_debug_str(mono_item.def_id());
                         let body     = tcx.instance_mir(instance.def);
+                        let cfr_tree = cfr::find_cfr_tree(&body.basic_blocks);
+                        let dfmir    = lower1::mir_to_dfmir(tcx, body, &cfr_tree);
                         // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, unique_id);
                         // for (bbi, bb,) in body.basic_blocks.iter().enumerate() {
                         //     println!("bb{:?}:", bbi);
@@ -178,10 +178,9 @@ impl CodegenBackend for DiamondfireCodegen {
                         //         println!("  {:?}", bb.terminator().kind);
                         //     }
                         // }
-                        let cfr_tree = cfr::find_cfr_tree(&body.basic_blocks);
                         // println!("{:#}", cfr_tree);
                         // TODO
-                        bridge_items.functions.insert(unique_id, FunctionItem {
+                        bridge_items.functions.insert(fn_id, FunctionItem {
                             src_name,
                             src_doc,
                             name,
@@ -189,8 +188,17 @@ impl CodegenBackend for DiamondfireCodegen {
                                 attrs.flags.contains(CodegenFnAttrFlags::NO_MANGLE)
                                 || attrs.symbol_name.is_some()
                             ) ),
-                            inline   : mono_item_data.inlined
-                                || attrs.inline != InlineAttr::Never
+                            inline   : { match (attrs.inline) {
+                                InlineAttr::None
+                                => FunctionItemInline::Maybe,
+                                InlineAttr::Hint
+                                | InlineAttr::Always
+                                | InlineAttr::Force { .. }
+                                => FunctionItemInline::Always,
+                                InlineAttr::Never
+                                => FunctionItemInline::Never
+                            } },
+                            body     : dfmir
                         });
                     },
 
