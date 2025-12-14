@@ -1,10 +1,10 @@
 #![no_std]
 #![no_main]
 
-
 use diamondfire::prelude::*;
 
 
+/// Test doc comment
 #[unsafe(no_mangle)]
 pub fn fibonacci(n : usize) {
     let mut a = 1usize;

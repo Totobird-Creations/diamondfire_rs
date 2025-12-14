@@ -14,31 +14,20 @@ extern crate rustc_data_structures;
 extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate rustc_hir;
-extern crate rustc_metadata;
 extern crate rustc_middle;
 extern crate rustc_query_system;
 extern crate rustc_session;
 extern crate rustc_span;
 extern crate rustc_stable_hash;
 
-use bridgecg_diamondfire::items::BridgeItems;
-use core::any::Any;
-use std::{
-    fs::File,
-    path::Path
+use bridgecg_diamondfire::items::{
+    BridgeItems,
+    FunctionItem
 };
+use core::any::Any;
+use std::fs::File;
 use rustc_ast::LitKind;
 use rustc_codegen_ssa::{
-    back::{
-        archive::{
-            ArArchiveBuilder,
-            ArchiveBuilder,
-            ArchiveBuilderBuilder,
-            ImportLibraryItem,
-            DEFAULT_OBJECT_READER
-        },
-        link::link_binary
-    },
     traits::CodegenBackend,
     TargetConfig,
     CodegenResults,
@@ -50,10 +39,15 @@ use rustc_hir::{
     ConstItemRhs,
     Body,
     Expr,
-    ExprKind
+    ExprKind,
+    Attribute,
+    attrs::{
+        AttributeKind,
+        Linkage
+    }
 };
-use rustc_metadata::EncodedMetadata;
 use rustc_middle::{
+    middle::codegen_fn_attrs::CodegenFnAttrFlags,
     mir::mono::MonoItem,
     ty::TyCtxt
 };
@@ -118,34 +112,44 @@ impl CodegenBackend for DiamondfireCodegen {
             return Box::new(CrateToJoin { crate_info, bridge_items });
         }
 
+
+        // Search for items which declare information required by either codegen or the linker.
         for item_id in tcx.hir_crate_items(()).definitions() {
+
+            // `__PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES` is a `bridgecg_diamondfire::extern_names::ExternNameMap` encoded as `bincode::config::standard()`.
+            // The constant is passed to linker_diamondfire.
             if (tcx.opt_item_name(item_id).is_some_and(|name| name.as_str() == "__PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES")) {
                 assert!(bridge_items.extern_names.is_none());
                 let item = tcx.hir_expect_item(item_id);
+                // `__PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES` must be a `const` with value set to a `&[u8]`.
                 let ItemKind::Const(_, _, _, ConstItemRhs::Body(body_id)) = item.kind else { unreachable!(); };
+                // Since `diamondfire_sys` declares it using `include_bytes!`, we assume it is a bytestr literal without bothering to evaluate it.
                 let Body { params : [ ], value : Expr { kind : ExprKind::Lit(Spanned { node : LitKind::ByteStr(symbol, _), .. }), .. } } = tcx.hir_body(body_id) else { unreachable!() };
                 bridge_items.extern_names = Some(symbol.as_byte_str().to_vec());
             }
-            // if let ItemKind::Const(ident, _, _, rhs) = item.kind
-            //     && (ident.as_str() == "__PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES")
-            // {
-            //     assert!(bridge_items.extern_names.is_none());
-            //     // println!("{:?}", tcx.const_eval_poly(item_id.to_def_id()));
-            //     // println!("{:?}", tcx.static_ptr_ty(*def_id, TypingEnv::fully_monomorphized()));
-            // }
+
         }
+
 
         for codegen_unit in tcx.collect_and_partition_mono_items(()).codegen_units { // TODO: Parallelise this
             for (mono_item, mono_item_data,) in codegen_unit.items() {
-                // println!();
-                // println!("{}", mono_item.symbol_name(tcx));
+                let src_doc  = tcx.get_all_attrs(mono_item.def_id()).iter()
+                    .filter_map(|attr| {
+                        if let Attribute::Parsed(AttributeKind::DocComment { comment, .. }) = attr { Some(comment.as_str().trim()) }
+                        else { None }
+                    })
+                    .flat_map(|attr_comment| attr_comment.split("\n").map(|line| line.trim()))
+                    .flat_map(|attr_comment| ["\n", attr_comment,]).skip(1)
+                    .collect::<String>();
+                let name     = mono_item.symbol_name(tcx).to_string();
+                let attrs    = tcx.codegen_fn_attrs(mono_item.def_id());
                 match (mono_item) {
 
                     MonoItem::Fn(instance) => {
-                        let body  = tcx.instance_mir(instance.def);
-                        let attrs = tcx.codegen_fn_attrs(instance.def.def_id());
-                        // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, HashingUtil::hash_fn_def(tcx, instance.def.def_id(), instance.args));
-                        // println!("{:?} {:?}", mono_item_data.linkage, attrs.inline);
+                        let src_name = tcx.value_path_str_with_args(mono_item.def_id(), instance.args);
+                        let unique_id = HashingUtil::hash_fn_def(tcx, instance.def.def_id(), instance.args);
+                        let body      = tcx.instance_mir(instance.def);
+                        // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, );
                         // for (bbi, bb,) in body.basic_blocks.iter().enumerate() {
                         //     println!("bb{:?}:", bbi);
                         //     for stmt in &bb.statements {
@@ -172,12 +176,21 @@ impl CodegenBackend for DiamondfireCodegen {
                         let cfr_tree = cfr::find_cfr_tree(&body.basic_blocks);
                         // println!("{:#}", cfr_tree);
                         // TODO
+                        bridge_items.functions.insert(unique_id, FunctionItem {
+                            src_name,
+                            src_doc,
+                            name,
+                            exported : (
+                                (mono_item_data.linkage != Linkage::Internal)
+                                || attrs.flags.contains(CodegenFnAttrFlags::NO_MANGLE)
+                                || attrs.symbol_name.is_some()
+                            ),
+                            inline   : mono_item_data.inlined
+                        });
                     },
 
                     MonoItem::Static(def_id) => {
-                        let attrs = tcx.codegen_fn_attrs(*def_id);
                         let alloc = tcx.eval_static_initializer(def_id).unwrap();
-                        let name  = attrs.symbol_name.unwrap_or_else(|| tcx.item_ident(*def_id).name);
                         // let (is_mut, ident, ty, _,) = tcx.hir_expect_item(def_id.expect_local()).expect_static();
                         // println!("STATIC {:?} = {:#?}", def_id, alloc);
                         // TODO
@@ -227,45 +240,6 @@ impl CodegenBackend for DiamondfireCodegen {
         }, FxIndexMap::default(),)
     }
 
-
-    fn link(&self,
-        sess            : &Session,
-        codegen_results : CodegenResults,
-        metadata        : EncodedMetadata,
-        outputs         : &OutputFilenames
-    ) {
-        link_binary(
-            sess,
-            &RlibArchiveBuilder,
-            codegen_results,
-            metadata,
-            outputs,
-            "diamondfire"
-        );
-    }
-
-
-}
-
-
-struct RlibArchiveBuilder;
-
-impl ArchiveBuilderBuilder for RlibArchiveBuilder {
-
-    fn new_archive_builder<'a>(&self, sess: &'a Session) -> Box<dyn ArchiveBuilder + 'a> {
-        Box::new(ArArchiveBuilder::new(
-            sess,
-            &DEFAULT_OBJECT_READER,
-        ))
-    }
-
-    fn create_dll_import_lib(
-        &self,
-        _sess        : &Session,
-        _lib_name    : &str,
-        _dll_imports : Vec<ImportLibraryItem>,
-        _tmpdir      : &Path,
-    ) { unimplemented!("creating dll imports is unsupported"); }
 
 }
 

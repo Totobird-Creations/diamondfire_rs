@@ -1,3 +1,12 @@
+#![feature(
+    rustc_private
+)]
+
+extern crate anstream;
+extern crate rustc_driver;
+extern crate rustc_errors;
+
+
 use bridgecg_diamondfire::{
     extern_names::ExternNameMap,
     items::BridgeItems
@@ -5,12 +14,28 @@ use bridgecg_diamondfire::{
 use std::{
     env,
     fs::File,
+    io::stderr,
     path::PathBuf
+};
+use anstream::ColorChoice;
+use rustc_driver::default_translator;
+use rustc_errors::{
+    DiagCtxt,
+    Diag,
+    ErrorGuaranteed,
+    Level,
+    emitter::{
+        HumanEmitter,
+        Destination
+    }
 };
 
 
 #[derive(Default, Debug)]
 struct Cli {
+    /// Whether to print logs in colour.
+    colour            : ColorChoice,
+
     /// Crate codegen output paths.
     input_paths       : Vec<PathBuf>,
     /// Linking output path.
@@ -41,7 +66,18 @@ impl Cli {
         let mut args = env::args().skip(1);
         while let Some(arg) = args.next() {
 
-            if (arg == "-flavor") {
+            if (arg == "--color") {
+                let mode = args.next().unwrap(); // TODO: Error handler instead of unwrap.
+                cli.colour = { match (mode.as_str()) {
+                    "auto"   => ColorChoice::Auto,
+                    "ansi"   => ColorChoice::AlwaysAnsi,
+                    "always" => ColorChoice::Always,
+                    "never"  => ColorChoice::Never,
+                    _        => { panic!(); } // TODO: Error handler instead of panic.
+                } };
+            }
+
+            else if (arg == "-flavor") {
                 args.next().unwrap(); // TODO: Error handler instead of unwrap.
             }
 
@@ -104,18 +140,32 @@ impl Cli {
 
 
 fn main() {
+    // Parse command line inputs.
     let cli = Cli::parse();
 
-    let mut extern_names = None;
+    // Set up diagnostics context.
+    let dcx = DiagCtxt::new(Box::new(HumanEmitter::new(
+        Destination::new(Box::new(stderr()), cli.colour),
+        default_translator()
+    )));
+    let dcx = dcx.handle();
+
+    // Read input files.
+    let mut bridge_items = BridgeItems::default();
     for input_path in cli.input_paths {
         let mut f = File::open(input_path).unwrap();
-        let bridge_items = BridgeItems::read_decode(&mut f).unwrap();
-        if let Some(en) = bridge_items.extern_names {
-            assert!(extern_names.is_none());
-            extern_names = Some(en);
-        }
+        bridge_items.append(&mut BridgeItems::read_decode(&mut f).unwrap());
     }
-    let extern_names = ExternNameMap::decode(&extern_names.unwrap());
+    let Some(extern_names) = &bridge_items.extern_names else {
+        Diag::<ErrorGuaranteed>::new(dcx, Level::Error, "missing actiondump declaration")
+            .with_help("you might need to import `diamondfire` or `diamondfire_sys`")
+            .emit();
+        dcx.abort_if_errors();
+        unreachable!()
+    };
+    let extern_names = ExternNameMap::decode(extern_names);
 
-    todo!()
+    println!("{:#?}", bridge_items.functions);
+
+    dcx.abort_if_errors();
 }

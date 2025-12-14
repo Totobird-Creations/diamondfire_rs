@@ -19,6 +19,9 @@ extern crate self as __private_diamondfire;
 #[doc(hidden)]
 pub use diamondfire_macros as __private_diamondfire_macros;
 
+// Prevents the linker from panicking due to missing `__PRIVATE_DIAMONDFIRE_SYS__EXTERN_NAMES`.
+pub use diamondfire_sys as _;
+
 
 pub mod value;
 pub mod debug;

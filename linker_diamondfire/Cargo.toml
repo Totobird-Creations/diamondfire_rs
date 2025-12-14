@@ -6,6 +6,9 @@ description = "Linker and CCAPI integration for the Diamondfire block language c
 
 edition = "2024"
 
+[package.metadata.rust-analyzer]
+rustc_private = true
+
 
 [lints.rust]
 unused_parens = "allow"

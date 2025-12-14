@@ -16,15 +16,22 @@ pub struct BridgeItems {
 #[derive(Encode, Decode, Debug)]
 pub struct FunctionItem {
 
+    /// The source name of the function, including crate name and module path.
+    pub src_name : String,
+
+    /// The source doc comments of the function.
+    pub src_doc  : String,
+
     /// The name of the function.
-    /// This will already have been mangled.
-    pub name        : String,
+    /// This will have already been mangled.
+    pub name     : String,
 
-    /// Whether this function can be inlined.
-    pub can_inline  : bool,
+    /// Prevents the function from being renamed, removed, inlined, or having its signature modified.
+    pub exported : bool,
 
-    /// Whether the signature can be changed for optimisation.
-    pub sig_mutable : bool
+    /// Whether the function should be inlined.
+    /// If `exported` is `true`, this is ignored.
+    pub inline   : bool
 
 }
 
@@ -46,6 +53,14 @@ impl BridgeItems {
 
     pub fn encode_write<W : Write>(&self, f : &mut W) -> Result<(), bincode::error::EncodeError> {
         bincode::encode_into_std_write(self, f, bincode::config::standard()).map(|_| ())
+    }
+
+    pub fn append(&mut self, other : &mut BridgeItems) {
+        if let Some(extern_names) = other.extern_names.take() {
+            assert!(self.extern_names.is_none());
+            self.extern_names = Some(extern_names);
+        }
+        self.functions.append(&mut other.functions);
     }
 
 }
