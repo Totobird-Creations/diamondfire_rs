@@ -6,18 +6,21 @@ extern crate anstream;
 extern crate rustc_driver;
 extern crate rustc_errors;
 
+mod cli;
+use cli::Cli;
+
+mod ctx;
+use ctx::LinkingCtx;
+
 
 use bridgecg_diamondfire::{
     extern_names::ExternNameMap,
     items::BridgeItems
 };
 use std::{
-    env,
     fs::File,
-    io::stderr,
-    path::PathBuf
+    io::stderr
 };
-use anstream::ColorChoice;
 use rustc_driver::default_translator;
 use rustc_errors::{
     DiagCtxt,
@@ -29,114 +32,6 @@ use rustc_errors::{
         Destination
     }
 };
-
-
-#[derive(Default, Debug)]
-struct Cli {
-    /// Whether to print logs in colour.
-    colour            : ColorChoice,
-
-    /// Crate codegen output paths.
-    input_paths       : Vec<PathBuf>,
-    /// Linking output path.
-    output_path       : Option<PathBuf>,
-    /// Names which may not be mangled or have their signature edited.
-    exports           : Vec<String>,
-    /// Remove debug information.
-    strip_debug       : bool,
-    /// Remove all non-exported names.
-    strip_all         : bool,
-    /// How aggressively to optimise.
-    opt_level         : u8,
-    /// Whether to eliminate dead code.
-    eliminate_dead    : bool,
-
-    /// Whether to track function backtraces.
-    track_backtraces  : bool,
-    /// Whether to track per-process CPU usage.
-    track_process_cpu : bool,
-
-    /// Whether to send templates to CCAPI for placement.
-    export_ccapi      : bool
-}
-impl Cli {
-    fn parse() -> Cli {
-        let mut cli = Cli::default();
-
-        let mut args = env::args().skip(1);
-        while let Some(arg) = args.next() {
-
-            if (arg == "--color") {
-                let mode = args.next().unwrap(); // TODO: Error handler instead of unwrap.
-                cli.colour = { match (mode.as_str()) {
-                    "auto"   => ColorChoice::Auto,
-                    "ansi"   => ColorChoice::AlwaysAnsi,
-                    "always" => ColorChoice::Always,
-                    "never"  => ColorChoice::Never,
-                    _        => { panic!(); } // TODO: Error handler instead of panic.
-                } };
-            }
-
-            else if (arg == "-flavor") {
-                args.next().unwrap(); // TODO: Error handler instead of unwrap.
-            }
-
-            else if (arg == "-o") {
-                let output_path = PathBuf::from(args.next().unwrap()); // TODO: Error handler instead of unwrap.
-                cli.input_paths.push(output_path.with_extension("dfrs-cg"));
-                cli.output_path = Some(output_path);
-            }
-
-            else if (arg == "--export") {
-                let export = args.next().unwrap().to_string(); // TODO: Error handler instead of unwrap.
-                cli.exports.push(export);
-            }
-
-            else if (arg == "--strip-debug") {
-                cli.strip_debug = true
-            }
-            else if (arg == "--strip-all") {
-                cli.strip_all = true
-            }
-
-            else if let Some(opt_level) = arg.strip_prefix("-O") {
-                cli.opt_level = opt_level.parse::<u8>().unwrap(); // TODO: Error handler instead of unwrap.
-            }
-
-            else if (arg == "--gc-sections") {
-                cli.eliminate_dead = true
-            }
-
-            else if (arg == "--track-backtraces") {
-                cli.track_backtraces = true
-            }
-            else if (arg == "--track-process-cpu") {
-                cli.track_process_cpu = true
-            }
-
-            else if (arg == "--ccapi") {
-                cli.export_ccapi = true
-            }
-
-            else if (! arg.starts_with('-')) {
-                if (arg.ends_with(".rlib")) {
-                    let mut input_path = PathBuf::from(arg);
-                    input_path.set_extension("dfrs-cg");
-                    cli.input_paths.push(input_path);
-                } else {
-                    eprintln!("Ignoring unrecognised arguement {:?}", arg);
-                }
-            }
-
-            else {
-                eprintln!("Ignoring unrecognised flag {:?}", arg);
-            }
-
-        }
-
-        cli
-    }
-}
 
 
 fn main() {
@@ -165,7 +60,19 @@ fn main() {
     };
     let extern_names = ExternNameMap::decode(extern_names);
 
-    println!("{:#?}", bridge_items.functions);
+    let mut ctx = LinkingCtx::default();
+    // Queue all exported functions for linking.
+    for (&fn_id, bridge_fn,) in &bridge_items.functions {
+        if (bridge_fn.exported) {
+            ctx.queue_link_fn(fn_id);
+        }
+    }
+
+    while let Some(fn_id) = ctx.pop_queued_fn() {
+        let bridge_fn = bridge_items.functions.get(&fn_id).unwrap();
+        println!("{:#?}", bridge_fn);
+    }
+
     todo!();
 
     dcx.abort_if_errors();

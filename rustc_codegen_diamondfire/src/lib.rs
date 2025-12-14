@@ -111,7 +111,7 @@ impl CodegenBackend for DiamondfireCodegen {
         let mut bridge_items = BridgeItems::default();
 
         let crate_name = crate_info.local_crate_name.to_string();
-        if (crate_name == "compiler_builtins" || crate_name == "core") { // TODO: Remove
+        if (crate_name == "compiler_builtins") { // TODO: Remove
             return Box::new(CrateToJoin { crate_info, bridge_items });
         }
 
@@ -185,11 +185,10 @@ impl CodegenBackend for DiamondfireCodegen {
                             src_name,
                             src_doc,
                             name,
-                            exported : (
-                                (mono_item_data.linkage != Linkage::Internal)
-                                || attrs.flags.contains(CodegenFnAttrFlags::NO_MANGLE)
+                            exported : ( (mono_item_data.linkage != Linkage::Internal) && (
+                                attrs.flags.contains(CodegenFnAttrFlags::NO_MANGLE)
                                 || attrs.symbol_name.is_some()
-                            ),
+                            ) ),
                             inline   : mono_item_data.inlined
                                 || attrs.inline != InlineAttr::Never
                         });
