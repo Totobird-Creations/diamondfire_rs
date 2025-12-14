@@ -146,8 +146,9 @@ impl CodegenBackend for DiamondfireCodegen {
                 match (mono_item) {
 
                     MonoItem::Fn(instance) => {
-                        let src_name = tcx.value_path_str_with_args(mono_item.def_id(), instance.args);
                         let unique_id = HashingUtil::hash_fn_def(tcx, instance.def.def_id(), instance.args);
+                        // let src_name = tcx.def_path_str_with_args(mono_item.def_id(), instance.args); // Panics on some items.
+                        let src_name  = tcx.def_path_debug_str(mono_item.def_id());
                         let body      = tcx.instance_mir(instance.def);
                         // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, );
                         // for (bbi, bb,) in body.basic_blocks.iter().enumerate() {

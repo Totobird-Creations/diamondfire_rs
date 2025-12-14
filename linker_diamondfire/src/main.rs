@@ -165,7 +165,8 @@ fn main() {
     };
     let extern_names = ExternNameMap::decode(extern_names);
 
-    println!("{:#?}", bridge_items.functions);
+    // println!("{:#?}", bridge_items.functions);
+    todo!();
 
     dcx.abort_if_errors();
 }
