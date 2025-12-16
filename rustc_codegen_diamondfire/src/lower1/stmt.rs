@@ -8,7 +8,7 @@ use rustc_middle::mir::{
 
 
 pub fn stmt_to_dfmir<'tcx>(
-    ctx  : &mut Lower1Ctx<'tcx>,
+    ctx  : &mut Lower1Ctx<'tcx, '_>,
     stmt : &Statement<'tcx>,
     out  : &mut Vec<DfMirStmt>
 ) {
@@ -23,7 +23,9 @@ pub fn stmt_to_dfmir<'tcx>(
         => todo!(),
 
         StatementKind::Intrinsic(_)
-        => todo!(),
+        => {
+            // TODO
+        },
 
         StatementKind::FakeRead(_)
         | StatementKind::AscribeUserType(_, _)

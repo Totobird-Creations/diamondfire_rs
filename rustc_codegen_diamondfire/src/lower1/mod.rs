@@ -1,5 +1,8 @@
 use crate::cfr::{ CfrTree, CfrBranch };
-use bridgecg_diamondfire::dfmir::DfMirStmt;
+use bridgecg_diamondfire::{
+    bridge_items::BridgeItems,
+    dfmir::DfMirStmt
+};
 use rustc_middle::{
     mir::Body,
     ty::TyCtxt
@@ -12,20 +15,23 @@ mod term;
 use term::term_to_dfmir;
 
 
-struct Lower1Ctx<'tcx> {
-    tcx  : TyCtxt<'tcx>,
-    body : &'tcx Body<'tcx>
+struct Lower1Ctx<'tcx, 'bi> {
+    tcx          : TyCtxt<'tcx>,
+    body         : &'tcx Body<'tcx>,
+    bridge_items : &'bi mut BridgeItems
 }
 
 
 pub fn mir_to_dfmir<'tcx>(
-    tcx  : TyCtxt<'tcx>,
-    body : &'tcx Body<'tcx>,
-    cfr  : &CfrTree
+    tcx          : TyCtxt<'tcx>,
+    body         : &'tcx Body<'tcx>,
+    cfr          : &CfrTree,
+    bridge_items : &mut BridgeItems
 ) -> Vec<DfMirStmt> {
     let mut ctx = Lower1Ctx {
         tcx,
-        body
+        body,
+        bridge_items
     };
     let mut out = Vec::new();
     for branch in &cfr.branches {
@@ -36,7 +42,7 @@ pub fn mir_to_dfmir<'tcx>(
 
 
 fn branch_to_dfmir(
-    ctx    : &mut Lower1Ctx<'_>,
+    ctx    : &mut Lower1Ctx<'_, '_>,
     branch : &CfrBranch,
     out    : &mut Vec<DfMirStmt>
 ) {
@@ -50,7 +56,9 @@ fn branch_to_dfmir(
             term_to_dfmir(ctx, bb.terminator(), out);
         },
 
-        CfrBranch::Match { .. } => todo!(),
+        CfrBranch::Match { .. } => {
+            // TODO
+        },
 
         CfrBranch::Loop { .. } => {
             // TODO

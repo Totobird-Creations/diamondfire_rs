@@ -10,12 +10,12 @@ use bincode::{ Encode, Decode };
 #[derive(Default, Encode, Decode)]
 pub struct BridgeItems {
     pub extern_names : Option<Vec<u8>>,
-    pub functions    : BTreeMap<u128, FunctionItem>
+    pub funcs        : BTreeMap<u128, FuncItem>
 }
 
 
 #[derive(Encode, Decode, Debug)]
-pub struct FunctionItem {
+pub struct FuncItem {
 
     /// The source name of the function, including crate name and module path.
     pub src_name : String,
@@ -32,15 +32,14 @@ pub struct FunctionItem {
 
     /// Whether the function should be inlined.
     /// This is ignored if `exported` is `true`.
-    pub inline   : FunctionItemInline,
+    pub inline   : FuncItemInline,
 
     pub body     : Vec<DfMirStmt>
 
 }
 
-
 #[derive(Encode, Decode, Debug)]
-pub enum FunctionItemInline {
+pub enum FuncItemInline {
 
     /// Determine whether the function should be inlined based on dfJSON cost, usages, etc.
     Maybe,
@@ -60,7 +59,7 @@ impl Debug for BridgeItems {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         f.debug_struct("BridgeItems")
             .field_with("extern_names", |f| { if (self.extern_names.is_some()) { write!(f, "Some([...])") } else { write!(f, "None") } })
-            .field("functions", &self.functions)
+            .field("functions", &self.funcs)
             .finish()
     }
 }
@@ -80,7 +79,7 @@ impl BridgeItems {
             assert!(self.extern_names.is_none());
             self.extern_names = Some(extern_names);
         }
-        self.functions.append(&mut other.functions);
+        self.funcs.append(&mut other.funcs);
     }
 
 }

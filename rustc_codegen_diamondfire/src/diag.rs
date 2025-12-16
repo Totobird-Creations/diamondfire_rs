@@ -33,6 +33,13 @@ pub fn coroutines_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
     ).with_span(span).emit();
 }
 
+pub fn intrinsic_unsupported(dcx : DiagCtxtHandle<'_>, span : Span, name : &str) {
+    Diag::<ErrorGuaranteed>::new(dcx,
+        Level::Error,
+        format!("the `{}` intrinsic is currently unsupported by the `diamondfire-unknown-unknown` target", name)
+    ).with_span(span).emit();
+}
+
 pub fn inlineasm_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
     Diag::<ErrorGuaranteed>::new(dcx,
         Level::Error,

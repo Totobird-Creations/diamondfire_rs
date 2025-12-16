@@ -11,8 +11,19 @@ pub use ty::*;
 #[derive(Encode, Decode, Debug)]
 pub enum DfMirStmt {
 
+    CallExtern {
+        name : String,
+        // TODO: Args
+        // TODO: Return place
+    },
     Call {
+        name  : String, // TODO
         fn_id : u128
+        // TODO: Args
+        // TODO: Return place
+    },
+    CallPtr {
+        // TODO: Func
         // TODO: Args
         // TODO: Return place
     },
@@ -34,8 +45,10 @@ impl DfMirStmt {
     /// Approximates the number of dfJSON code blocks this statement will become.
     pub fn dfjson_cost(&self) -> usize {
         match (self) {
-            Self::Call { .. } => 1,
-            Self::Return      => 1,
+            Self::CallExtern { .. } => 1,
+            Self::Call { .. }       => 1,
+            Self::CallPtr { .. }    => 1,
+            Self::Return            => 1
         }
     }
 

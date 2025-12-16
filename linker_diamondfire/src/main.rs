@@ -15,7 +15,8 @@ use ctx::LinkingCtx;
 
 use bridgecg_diamondfire::{
     extern_names::ExternNameMap,
-    bridge_items::BridgeItems
+    bridge_items::BridgeItems,
+    dfmir::DfMirStmt
 };
 use std::{
     fs::File,
@@ -62,15 +63,34 @@ fn main() {
 
     let mut ctx = LinkingCtx::default();
     // Queue all exported functions for linking.
-    for (&fn_id, bridge_fn,) in &bridge_items.functions {
+    for (&fn_id, bridge_fn,) in &bridge_items.funcs {
         if (bridge_fn.exported) {
             ctx.queue_link_fn(fn_id);
         }
     }
 
     while let Some(fn_id) = ctx.pop_queued_fn() {
-        let bridge_fn = bridge_items.functions.get(&fn_id).unwrap();
-        println!("{}: {:#?}", fn_id, bridge_fn);
+        let bridge_fn = bridge_items.funcs.get(&fn_id).unwrap_or_else(|| panic!("{}", fn_id));
+        println!("{} ({}):", bridge_fn.name, fn_id);
+        for stmt in &bridge_fn.body {
+            println!("  {:?}", stmt);
+            // TODO
+            match (stmt) {
+                DfMirStmt::CallExtern { name } => {
+                    // TODO
+                },
+                DfMirStmt::Call { fn_id, name } => {
+                    println!("{} {:?}", fn_id, name);
+                    ctx.queue_link_fn(*fn_id);
+                },
+                DfMirStmt::CallPtr { } => {
+                    // TODO
+                }
+                DfMirStmt::Return => {
+                    // TODO
+                }
+            }
+        }
     }
 
     todo!();

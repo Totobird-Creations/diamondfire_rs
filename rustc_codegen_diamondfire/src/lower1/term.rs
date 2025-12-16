@@ -15,7 +15,7 @@ use rustc_middle::{
 
 
 pub fn term_to_dfmir<'tcx>(
-    ctx  : &mut Lower1Ctx<'tcx>,
+    ctx  : &mut Lower1Ctx<'tcx, '_>,
     term : &Terminator<'tcx>,
     out  : &mut Vec<DfMirStmt>
 ) {
@@ -39,17 +39,36 @@ pub fn term_to_dfmir<'tcx>(
             match (func_ty.kind()) {
                 TyKind::FnDef(def_id, genargs) => {
                     let fn_id = HashingUtil::hash_fn_def(ctx.tcx, *def_id, *genargs);
-                    out.push(DfMirStmt::Call {
-                        fn_id
+                    if let Some(intrinsic) = ctx.tcx.intrinsic(*def_id) {
+                        match (intrinsic.name.as_str()) {
+                            name => { diag::intrinsic_unsupported(ctx.tcx.dcx(), term.source_info.span, name); }
+                        }
+                    } else if (ctx.tcx.is_foreign_item(*def_id)) {
+                        out.push(DfMirStmt::CallExtern {
+                            name : ctx.tcx.codegen_fn_attrs(*def_id).symbol_name.unwrap_or_else(|| ctx.tcx.item_name(*def_id)).to_string()
+                            // TODO
+                        });
+                    } else {
+                        out.push(DfMirStmt::Call {
+                            name  : ctx.tcx.codegen_fn_attrs(*def_id).symbol_name.unwrap_or_else(|| ctx.tcx.item_name(*def_id)).to_string(),
+                            fn_id
+                            // TODO
+                        });
+                    }
+                },
+                TyKind::FnPtr(_, _) => {
+                    out.push(DfMirStmt::CallPtr { // TODO
                     });
                 },
-                tyk => unreachable!("{:?}", tyk)
+                tyk => unreachable!("{:?} {:?}", std::mem::discriminant(tyk), tyk)
             }
         },
 
         TerminatorKind::TailCall { .. } => todo!(),
 
-        TerminatorKind::Assert { .. } => todo!(),
+        TerminatorKind::Assert { .. } => {
+            // TODO
+        },
 
         TerminatorKind::UnwindResume
         | TerminatorKind::UnwindTerminate(_)

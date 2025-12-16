@@ -23,8 +23,8 @@ extern crate rustc_stable_hash;
 
 use bridgecg_diamondfire::bridge_items::{
     BridgeItems,
-    FunctionItem,
-    FunctionItemInline
+    FuncItem,
+    FuncItemInline
 };
 use core::any::Any;
 use std::fs::File;
@@ -67,7 +67,8 @@ use rustc_session::{
 };
 use rustc_span::{
     DUMMY_SP,
-    source_map::Spanned
+    source_map::Spanned,
+    sym::compiler_builtins as SYMBOL_COMPILER_BUILTINS
 };
 
 
@@ -108,10 +109,10 @@ impl CodegenBackend for DiamondfireCodegen {
         let     crate_info   = CrateInfo::new(tcx, "diamondfire".to_string());
         let mut bridge_items = BridgeItems::default();
 
-        let crate_name = crate_info.local_crate_name.to_string();
-        if (crate_name == "compiler_builtins" || crate_name == "core") { // TODO: Remove
-            return Box::new(CrateToJoin { crate_info, bridge_items });
-        }
+        let is_builtins = crate_info.local_crate_name == SYMBOL_COMPILER_BUILTINS;
+        // if (crate_name == "compiler_builtins" || crate_name == "core") { // TODO: Remove
+        //     return Box::new(CrateToJoin { crate_info, bridge_items });
+        // }
 
 
         // Search for items which declare information required by either codegen or the linker.
@@ -153,50 +154,24 @@ impl CodegenBackend for DiamondfireCodegen {
                         let src_name = tcx.def_path_debug_str(mono_item.def_id());
                         let body     = tcx.instance_mir(instance.def);
                         let cfr_tree = cfr::find_cfr_tree(&body.basic_blocks);
-                        let dfmir    = lower1::mir_to_dfmir(tcx, body, &cfr_tree);
-                        // println!("FUNCTION: {:?}{:?} {}", tcx.opt_item_name(instance.def.def_id()), instance.args, unique_id);
-                        // for (bbi, bb,) in body.basic_blocks.iter().enumerate() {
-                        //     println!("bb{:?}:", bbi);
-                        //     for stmt in &bb.statements {
-                        //         println!("  {:?}", stmt);
-                        //     }
-                        //     if let rustc_middle::mir::TerminatorKind::Call { func, .. } = &bb.terminator().kind {
-                        //         if let rustc_middle::ty::TyKind::FnDef(def_id, genargs) = func.ty(body, tcx).kind() {
-                        //             if (tcx.is_foreign_item(*def_id)) {
-                        //                 let extern_fn_attrs = tcx.codegen_fn_attrs(*def_id);
-                        //                 assert!(extern_fn_attrs.flags.contains(CodegenFnAttrFlags::FOREIGN_ITEM));
-                        //                 println!("  {:?} {} (extern {:?})", bb.terminator().kind, HashingUtil::hash_fn_def(tcx, *def_id, *genargs), extern_fn_attrs.symbol_name.unwrap_or_else(|| tcx.item_ident(*def_id).name));
-                        //             } else {
-                        //                 println!("  {:?} {} (fndef)", bb.terminator().kind, HashingUtil::hash_fn_def(tcx, *def_id, *genargs));
-                        //             }
-                        //         } else if let rustc_middle::ty::TyKind::Closure(def_id, genargs) = func.ty(body, tcx).kind() {
-                        //             println!("  {:?} {} (closure)", bb.terminator().kind, HashingUtil::hash_fn_def(tcx, *def_id, *genargs));
-                        //         } else {
-                        //             println!("  {:?}", bb.terminator().kind);
-                        //         }
-                        //     } else {
-                        //         println!("  {:?}", bb.terminator().kind);
-                        //     }
-                        // }
-                        // println!("{:#}", cfr_tree);
-                        // TODO
-                        bridge_items.functions.insert(fn_id, FunctionItem {
+                        let dfmir    = lower1::mir_to_dfmir(tcx, body, &cfr_tree, &mut bridge_items);
+                        bridge_items.funcs.insert(fn_id, FuncItem {
                             src_name,
                             src_doc,
                             name,
-                            exported : ( (mono_item_data.linkage != Linkage::Internal) && (
+                            exported : ( (mono_item_data.linkage != Linkage::Internal) && (! is_builtins) && (
                                 attrs.flags.contains(CodegenFnAttrFlags::NO_MANGLE)
                                 || attrs.symbol_name.is_some()
                             ) ),
                             inline   : { match (attrs.inline) {
                                 InlineAttr::None
-                                => FunctionItemInline::Maybe,
+                                => FuncItemInline::Maybe,
                                 InlineAttr::Hint
                                 | InlineAttr::Always
                                 | InlineAttr::Force { .. }
-                                => FunctionItemInline::Always,
+                                => FuncItemInline::Always,
                                 InlineAttr::Never
-                                => FunctionItemInline::Never
+                                => FuncItemInline::Never
                             } },
                             body     : dfmir
                         });
