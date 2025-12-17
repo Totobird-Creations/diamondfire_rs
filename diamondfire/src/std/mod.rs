@@ -16,7 +16,7 @@ use core::{
 // pub mod string;
 
 pub mod vec;
-
+pub mod time;
 
 /// Common types and functions.
 pub mod prelude {
