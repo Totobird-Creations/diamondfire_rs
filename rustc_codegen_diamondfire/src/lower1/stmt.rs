@@ -1,5 +1,9 @@
 use crate::diag;
-use super::Lower1Ctx;
+use super::{
+    Lower1Ctx,
+    place_store_to_dfmir,
+    rvalue_to_dfmir
+};
 use bridgecg_diamondfire::dfmir::DfMirStmt;
 use rustc_middle::mir::{
     Statement,
@@ -14,18 +18,17 @@ pub fn stmt_to_dfmir<'tcx>(
 ) {
     match (&stmt.kind) {
 
-        StatementKind::Assign(box (place, operand,))
+        StatementKind::Assign(box (place, rvalue,))
         => {
-            // TODO
+            let rvalue_df = rvalue_to_dfmir(ctx, rvalue, out);
+            place_store_to_dfmir(ctx, place, rvalue_df, out);
         },
 
         StatementKind::SetDiscriminant { .. }
         => todo!(),
 
         StatementKind::Intrinsic(_)
-        => {
-            // TODO
-        },
+        => todo!(),
 
         StatementKind::FakeRead(_)
         | StatementKind::AscribeUserType(_, _)

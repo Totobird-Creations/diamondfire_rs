@@ -16,7 +16,10 @@ use ctx::LinkingCtx;
 use bridgecg_diamondfire::{
     extern_names::ExternNameMap,
     bridge_items::BridgeItems,
-    dfmir::DfMirStmt
+    dfmir::{
+        DfMirStmt,
+        DfMirCall
+    }
 };
 use std::{
     fs::File,
@@ -76,19 +79,47 @@ fn main() {
             println!("  {:?}", stmt);
             // TODO
             match (stmt) {
-                DfMirStmt::CallExtern { name } => {
+
+                DfMirStmt::CopyTL { .. } => {
                     // TODO
                 },
-                DfMirStmt::Call { fn_id, name } => {
-                    println!("{} {:?}", fn_id, name);
-                    ctx.queue_link_fn(*fn_id);
-                },
-                DfMirStmt::CallPtr { } => {
+                DfMirStmt::CopyLT { .. } => {
                     // TODO
-                }
+                },
+                DfMirStmt::CopyTT { .. } => {
+                    // TODO
+                },
+
+                DfMirStmt::TNumber { .. } => {
+                    // TODO
+                },
+                DfMirStmt::TStruct { .. } => {
+                    // TODO
+                },
+                DfMirStmt::TEnum { .. } => {
+                    // TODO
+                },
+
+                DfMirStmt::Call { call } => { match (call) {
+                    DfMirCall::Defined(fn_id) => {
+                        ctx.queue_link_fn(*fn_id);
+                        // TODO
+                    },
+                    DfMirCall::Ptr => {
+                        // TODO
+                    },
+                    DfMirCall::Extern(_) => {
+                        // TODO
+                    },
+                    DfMirCall::Intrinsic(_) => {
+                        // TOOD
+                    }
+                } },
+
                 DfMirStmt::Return => {
                     // TODO
                 }
+
             }
         }
     }

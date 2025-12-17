@@ -3,7 +3,11 @@ use crate::{
     diag
 };
 use super::Lower1Ctx;
-use bridgecg_diamondfire::dfmir::DfMirStmt;
+use bridgecg_diamondfire::dfmir::{
+    DfMirStmt,
+    DfMirCall,
+    DfMirCallIntrinsic
+};
 use rustc_middle::{
     mir::{
         Terminator,
@@ -27,7 +31,13 @@ pub fn term_to_dfmir<'tcx>(
         | TerminatorKind::Unreachable
         => { },
 
-        TerminatorKind::Drop { .. } => {
+        TerminatorKind::Drop { place, unwind, drop, async_fut, .. } => {
+            if let UnwindAction::Unreachable = unwind { } else {
+                diag::unwinding_unsupported(ctx.tcx.dcx(), term.source_info.span);
+            }
+            if (drop.is_some() || async_fut.is_some()) {
+                diag::coroutines_unsupported(ctx.tcx.dcx(), term.source_info.span);
+            }
             // TODO
         },
 
@@ -37,27 +47,55 @@ pub fn term_to_dfmir<'tcx>(
             }
             let func_ty = func.ty(ctx.body, ctx.tcx);
             match (func_ty.kind()) {
-                TyKind::FnDef(def_id, genargs) => {
-                    let fn_id = HashingUtil::hash_fn_def(ctx.tcx, *def_id, *genargs);
-                    if let Some(intrinsic) = ctx.tcx.intrinsic(*def_id) {
-                        match (intrinsic.name.as_str()) {
-                            name => { diag::intrinsic_unsupported(ctx.tcx.dcx(), term.source_info.span, name); }
-                        }
+                TyKind::FnDef(def_id, generics) => {
+                    let call = { if let Some(intrinsic) = ctx.tcx.intrinsic(*def_id) {
+                        DfMirCall::Intrinsic(match (intrinsic.name.as_str()) {
+                            "abort"                    => DfMirCallIntrinsic::Abort,
+                            "arith_offset"             => DfMirCallIntrinsic::PtrShift,
+                            "assert_inhabited"         => { return; },
+                            "bswap"                    => DfMirCallIntrinsic::ByteReverse,
+                            "caller_location"          => DfMirCallIntrinsic::CallerLocation,
+                            "ceilf32"                  => DfMirCallIntrinsic::CeilF32,
+                            "ceilf64"                  => DfMirCallIntrinsic::CeilF64,
+                            "cold_path"                => { return; },
+                            "compare_bytes"            => DfMirCallIntrinsic::CompareBytes,
+                            "copysignf64"              => DfMirCallIntrinsic::CopySignF64,
+                            "ctlz"                     => DfMirCallIntrinsic::CountLeadingZeroBits,
+                            "ctpop"                    => DfMirCallIntrinsic::CountOneBits,
+                            "cttz"|"cttz_nonzero"      => DfMirCallIntrinsic::CountTrailingZeroBits,
+                            "disjoint_bitor"           => DfMirCallIntrinsic::DisjointBitOr,
+                            "fabsf32"                  => DfMirCallIntrinsic::AbsF32,
+                            "fabsf64"                  => DfMirCallIntrinsic::AbsF64,
+                            "floorf32"                 => DfMirCallIntrinsic::FloorF32,
+                            "floorf64"                 => DfMirCallIntrinsic::FloorF64,
+                            "fmaf64"                   => DfMirCallIntrinsic::MulAddF64,
+                            "ptr_offset_from_unsigned" => DfMirCallIntrinsic::PtrOffsetFromUnsigned,
+                            "round_ties_even_f32"      => DfMirCallIntrinsic::RoundTiesEvenF32,
+                            "round_ties_even_f64"      => DfMirCallIntrinsic::RoundTiesEvenF64,
+                            "saturating_sub"           => DfMirCallIntrinsic::SaturatingSub,
+                            "select_unpredictable"     => DfMirCallIntrinsic::SelectUnpredictable,
+                            "sqrtf32"                  => DfMirCallIntrinsic::SqrtF32,
+                            "sqrtf64"                  => DfMirCallIntrinsic::SqrtF64,
+                            "truncf32"                 => DfMirCallIntrinsic::TruncF32,
+                            "truncf64"                 => DfMirCallIntrinsic::TruncF64,
+                            "unchecked_funnel_shl"     => DfMirCallIntrinsic::FunnelShlUnchecked,
+                            name => {
+                                diag::intrinsic_unsupported(ctx.tcx.dcx(), term.source_info.span, name);
+                                return;
+                            }
+                        })
                     } else if (ctx.tcx.is_foreign_item(*def_id)) {
-                        out.push(DfMirStmt::CallExtern {
-                            name : ctx.tcx.codegen_fn_attrs(*def_id).symbol_name.unwrap_or_else(|| ctx.tcx.item_name(*def_id)).to_string()
-                            // TODO
-                        });
+                        DfMirCall::Extern(ctx.tcx.codegen_fn_attrs(*def_id).symbol_name.unwrap_or_else(|| ctx.tcx.item_name(*def_id)).to_string())
                     } else {
-                        out.push(DfMirStmt::Call {
-                            name  : ctx.tcx.codegen_fn_attrs(*def_id).symbol_name.unwrap_or_else(|| ctx.tcx.item_name(*def_id)).to_string(),
-                            fn_id
-                            // TODO
-                        });
-                    }
+                        DfMirCall::Defined(HashingUtil::hash_fn_def(ctx.tcx, *def_id, *generics))
+                    } };
+                    out.push(DfMirStmt::Call { // TODO
+                        call
+                    });
                 },
                 TyKind::FnPtr(_, _) => {
-                    out.push(DfMirStmt::CallPtr { // TODO
+                    out.push(DfMirStmt::Call { // TODO
+                        call : DfMirCall::Ptr
                     });
                 },
                 tyk => unreachable!("{:?} {:?}", std::mem::discriminant(tyk), tyk)
@@ -66,8 +104,11 @@ pub fn term_to_dfmir<'tcx>(
 
         TerminatorKind::TailCall { .. } => todo!(),
 
-        TerminatorKind::Assert { .. } => {
-            // TODO
+        TerminatorKind::Assert { cond, expected, msg, target, unwind } => {
+            if let UnwindAction::Unreachable = unwind { } else {
+                diag::unwinding_unsupported(ctx.tcx.dcx(), term.source_info.span);
+            }
+            todo!()
         },
 
         TerminatorKind::UnwindResume

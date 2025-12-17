@@ -8,6 +8,7 @@
 )]
 
 
+extern crate rustc_abi;
 extern crate rustc_ast;
 extern crate rustc_codegen_ssa;
 extern crate rustc_codegen_llvm;
@@ -110,9 +111,9 @@ impl CodegenBackend for DiamondfireCodegen {
         let mut bridge_items = BridgeItems::default();
 
         let is_builtins = crate_info.local_crate_name == SYMBOL_COMPILER_BUILTINS;
-        // if (crate_name == "compiler_builtins" || crate_name == "core") { // TODO: Remove
-        //     return Box::new(CrateToJoin { crate_info, bridge_items });
-        // }
+        if let "compiler_builtins"|"core" =  crate_info.local_crate_name.as_str() { // TODO: Remove
+            return Box::new(CrateToJoin { crate_info, bridge_items });
+        }
 
 
         // Search for items which declare information required by either codegen or the linker.

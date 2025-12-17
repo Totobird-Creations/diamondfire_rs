@@ -1,7 +1,10 @@
 use crate::cfr::{ CfrTree, CfrBranch };
 use bridgecg_diamondfire::{
     bridge_items::BridgeItems,
-    dfmir::DfMirStmt
+    dfmir::{
+        DfMirStmt,
+        DfMirTemporary
+    }
 };
 use rustc_middle::{
     mir::Body,
@@ -14,11 +17,32 @@ use stmt::stmt_to_dfmir;
 mod term;
 use term::term_to_dfmir;
 
+mod place;
+use place::{
+    place_load_to_dfmir,
+    place_store_to_dfmir
+};
+
+mod rvalue;
+use rvalue::rvalue_to_dfmir;
+
+mod operand;
+use operand::operand_to_dfmir;
+
 
 struct Lower1Ctx<'tcx, 'bi> {
     tcx          : TyCtxt<'tcx>,
     body         : &'tcx Body<'tcx>,
-    bridge_items : &'bi mut BridgeItems
+    bridge_items : &'bi mut BridgeItems,
+    next_temp    : DfMirTemporary
+}
+
+impl Lower1Ctx<'_, '_> {
+    pub fn next_temp(&mut self) -> DfMirTemporary {
+        let x = self.next_temp.0;
+        self.next_temp.0 += 1;
+        DfMirTemporary(x)
+    }
 }
 
 
@@ -31,7 +55,8 @@ pub fn mir_to_dfmir<'tcx>(
     let mut ctx = Lower1Ctx {
         tcx,
         body,
-        bridge_items
+        bridge_items,
+        next_temp    : DfMirTemporary(0)
     };
     let mut out = Vec::new();
     for branch in &cfr.branches {

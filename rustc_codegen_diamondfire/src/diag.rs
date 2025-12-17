@@ -19,6 +19,13 @@ pub fn disallowed_post_coroutine_lowering() {
     unreachable!("disallowed after coroutine lowering")
 }
 
+pub fn unions_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
+    Diag::<ErrorGuaranteed>::new(dcx,
+        Level::Error,
+        "unions are currently unsupported by the `diamondfire-unknown-unknown` target"
+    ).with_span(span).emit();
+}
+
 pub fn unwinding_unsupported(dcx : DiagCtxtHandle<'_>, span : Span) {
     Diag::<ErrorGuaranteed>::new(dcx,
         Level::Error,
