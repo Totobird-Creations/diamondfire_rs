@@ -38,7 +38,7 @@ pub fn term_to_dfmir<'tcx>(
             if (drop.is_some() || async_fut.is_some()) {
                 diag::coroutines_unsupported(ctx.tcx.dcx(), term.source_info.span);
             }
-            // TODO
+            todo!();
         },
 
         TerminatorKind::Call { func, args, destination, target, unwind, .. } => {
