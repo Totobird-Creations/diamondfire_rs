@@ -100,12 +100,16 @@ fn main() {
                     // TODO
                 },
 
-                DfMirStmt::Call { call } => { match (call) {
+                DfMirStmt::RawFieldGet { .. } => {
+                    // TODO
+                },
+
+                DfMirStmt::Call { call, .. } => { match (call) {
                     DfMirCall::Defined(fn_id) => {
                         ctx.queue_link_fn(*fn_id);
                         // TODO
                     },
-                    DfMirCall::Ptr => {
+                    DfMirCall::Ptr(_) => {
                         // TODO
                     },
                     DfMirCall::Extern(_) => {
@@ -115,10 +119,16 @@ fn main() {
                         // TOOD
                     }
                 } },
+                DfMirStmt::DropCall { fn_id, .. } => {
+                    ctx.queue_link_fn(*fn_id);
+                    // TODO
+                },
 
                 DfMirStmt::Return => {
                     // TODO
-                }
+                },
+
+                DfMirStmt::Todo(_) => { },
 
             }
         }

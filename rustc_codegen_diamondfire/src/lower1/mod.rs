@@ -29,6 +29,9 @@ use rvalue::rvalue_to_dfmir;
 mod operand;
 use operand::operand_to_dfmir;
 
+mod drop;
+use drop::drop_to_dfmir;
+
 
 struct Lower1Ctx<'tcx, 'bi> {
     tcx          : TyCtxt<'tcx>,

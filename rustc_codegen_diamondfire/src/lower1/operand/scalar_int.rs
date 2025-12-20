@@ -3,12 +3,14 @@ use bridgecg_diamondfire::dfmir::{
     DfMirStmt,
     DfMirTemporary
 };
+use rustc_abi::VariantIdx;
 use rustc_middle::ty::{
     Ty,
     TyKind,
     IntTy,
     UintTy,
-    ScalarInt
+    ScalarInt,
+    AdtKind
 };
 
 
@@ -55,6 +57,19 @@ pub fn scalar_int_to_dfmir<'tcx>(
         TyKind::Float(_) => todo!(),
 
         TyKind::Char => todo!(),
+
+        TyKind::Adt(adt_def, generics) => { match (adt_def.adt_kind()) {
+
+            AdtKind::Struct => {
+                let variant = adt_def.variant(VariantIdx::from_usize(0));
+                scalar_int_to_dfmir(ctx, variant.single_field().ty(ctx.tcx, generics), scalar_int, out)
+            },
+
+            AdtKind::Enum => todo!(),
+
+            AdtKind::Union => todo!()
+
+        } }
 
         tyk => unimplemented!("{:?}", tyk)
     }

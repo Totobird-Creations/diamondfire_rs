@@ -52,9 +52,9 @@ pub fn alloc_to_dfmir<'tcx>(
             AdtKind::Struct => {
                 let mut field_temps = Vec::new();
                 let variant = adt_def.variant(VariantIdx::from_usize(0));
-                for (i, field_def) in variant.fields.iter().enumerate() {
+                for (field_idx, field_def,) in variant.fields.iter_enumerated() {
                     let field_ty     = field_def.ty(ctx.tcx, generics);
-                    let field_offset = layout.fields.offset(i);
+                    let field_offset = layout.fields.offset(field_idx.as_usize());
                     field_temps.push(alloc_to_dfmir(ctx, field_ty, alloc, offset + field_offset, out, span));
                 }
                 let dst = ctx.next_temp();
@@ -68,6 +68,7 @@ pub fn alloc_to_dfmir<'tcx>(
 
             AdtKind::Union => {
                 diag::unions_unsupported(ctx.tcx.dcx(), span);
+                out.push(DfMirStmt::todo("unions"));
                 DfMirTemporary::PLACEHOLDER
             }
 

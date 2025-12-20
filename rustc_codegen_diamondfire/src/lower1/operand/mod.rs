@@ -32,7 +32,7 @@ pub fn operand_to_dfmir<'tcx>(
 
         Operand::Copy(place)
         | Operand::Move(place)
-        => { place_load_to_dfmir(ctx, place, out) },
+        => { place_load_to_dfmir(ctx, place, out).0 },
 
         Operand::Constant(box const_operand) => { match (const_operand.const_) {
 

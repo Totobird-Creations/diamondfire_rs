@@ -2,7 +2,13 @@ use crate::{
     HashingUtil,
     diag
 };
-use super::Lower1Ctx;
+use super::{
+    Lower1Ctx,
+    place_load_to_dfmir,
+    place_store_to_dfmir,
+    operand_to_dfmir,
+    drop_to_dfmir
+};
 use bridgecg_diamondfire::dfmir::{
     DfMirStmt,
     DfMirCall,
@@ -38,17 +44,18 @@ pub fn term_to_dfmir<'tcx>(
             if (drop.is_some() || async_fut.is_some()) {
                 diag::coroutines_unsupported(ctx.tcx.dcx(), term.source_info.span);
             }
-            todo!();
+            let (place_df, place_ty,) = place_load_to_dfmir(ctx, place, out);
+            drop_to_dfmir(ctx, place_ty, place_df, out);
         },
 
-        TerminatorKind::Call { func, args, destination, target, unwind, .. } => {
+        TerminatorKind::Call { func, args, destination, unwind, .. } => {
             if let UnwindAction::Unreachable = unwind { } else {
                 diag::unwinding_unsupported(ctx.tcx.dcx(), term.source_info.span);
             }
             let func_ty = func.ty(ctx.body, ctx.tcx);
-            match (func_ty.kind()) {
+            let call = { match (func_ty.kind()) {
                 TyKind::FnDef(def_id, generics) => {
-                    let call = { if let Some(intrinsic) = ctx.tcx.intrinsic(*def_id) {
+                    if let Some(intrinsic) = ctx.tcx.intrinsic(*def_id) {
                         DfMirCall::Intrinsic(match (intrinsic.name.as_str()) {
                             "abort"                    => DfMirCallIntrinsic::Abort,
                             "arith_offset"             => DfMirCallIntrinsic::PtrShift,
@@ -88,18 +95,18 @@ pub fn term_to_dfmir<'tcx>(
                         DfMirCall::Extern(ctx.tcx.codegen_fn_attrs(*def_id).symbol_name.unwrap_or_else(|| ctx.tcx.item_name(*def_id)).to_string())
                     } else {
                         DfMirCall::Defined(HashingUtil::hash_fn_def(ctx.tcx, *def_id, *generics))
-                    } };
-                    out.push(DfMirStmt::Call { // TODO
-                        call
-                    });
+                    }
                 },
                 TyKind::FnPtr(_, _) => {
-                    out.push(DfMirStmt::Call { // TODO
-                        call : DfMirCall::Ptr
-                    });
+                    let func_df = operand_to_dfmir(ctx, func, out);
+                    DfMirCall::Ptr(func_df)
                 },
                 tyk => unreachable!("{:?} {:?}", std::mem::discriminant(tyk), tyk)
-            }
+            } };
+            let args = args.iter().map(|arg| operand_to_dfmir(ctx, &arg.node, out)).collect::<Vec<_>>();
+            let dst  = ctx.next_temp();
+            out.push(DfMirStmt::Call { dst, call, args });
+            place_store_to_dfmir(ctx, destination, dst, out)
         },
 
         TerminatorKind::TailCall { .. } => todo!(),

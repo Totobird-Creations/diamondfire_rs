@@ -35,6 +35,9 @@ pub fn place_store_to_dfmir<'tcx>(
         ProjectionElem::UnwrapUnsafeBinder(_) => todo!(),
     } }
 
+    // We don't need the last item because it will just be overwritten.
+    _ = out.pop(); // TODO: Make sure this still works with ProjectionElem::Deref.
+
     // Write back to the place.
 
     out.push(DfMirStmt::CopyTT { src, dst : temp });
