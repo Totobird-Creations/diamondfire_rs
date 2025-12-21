@@ -1,8 +1,23 @@
+use core::fmt::{ self, Debug, Formatter };
+
+
 pub struct DfLirLine {
     pub head   : DfLirLineHead,
     pub blocks : Vec<DfLirBlock>
 }
+impl Debug for DfLirLine {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        let mut flist = f.debug_list();
+        flist.entry(&self.head);
+        for block in &self.blocks {
+            flist.entry(block);
+        }
+        flist.finish()
+    }
+}
 
+
+#[derive(Debug)]
 pub enum DfLirLineHead {
     Function {
         name   : String,
@@ -23,6 +38,7 @@ pub enum DfLirLineHead {
     }
 }
 
+#[derive(Debug)]
 pub enum DfLirBlock {
     PlayerAction {
         action : String,
@@ -113,6 +129,7 @@ pub enum DfLirBlock {
     }
 }
 
+#[derive(Debug)]
 pub enum DfLirTarget {
     Selection,
     Default,
@@ -124,6 +141,7 @@ pub enum DfLirTarget {
     LastSpawned
 }
 
+#[derive(Debug)]
 pub enum DfLirProcessTargetMode {
     CopyTargets,
     CopySelection,
@@ -131,6 +149,7 @@ pub enum DfLirProcessTargetMode {
     EachInSelection
 }
 
+#[derive(Debug)]
 pub enum DfLirProcessThreadLocalMode {
     None,
     Copy,
