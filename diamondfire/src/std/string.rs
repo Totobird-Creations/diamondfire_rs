@@ -1,10 +1,14 @@
-#[doc(inline)]
-pub use crate::value::String;
+use diamondfire_sys::df_string;
 use core::fmt::{
     Formatter,
     FormattingOptions,
     Display
 };
+
+
+pub struct String {
+    _opaque : *mut df_string
+}
 
 
 pub trait ToString {

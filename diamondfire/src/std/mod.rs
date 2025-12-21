@@ -13,7 +13,7 @@ use core::{
 // #[cfg(feature = "allocator")]
 // pub mod boxed;
 
-// pub mod string;
+pub mod string;
 
 pub mod vec;
 pub mod time;
