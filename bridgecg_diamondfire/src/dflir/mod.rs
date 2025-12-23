@@ -1,11 +1,11 @@
 use core::fmt::{ self, Debug, Formatter };
 
 
-pub struct DfLirLine {
-    pub head   : DfLirLineHead,
-    pub blocks : Vec<DfLirBlock>
+pub struct DfLirLine<'l> {
+    pub head   : DfLirLineHead<'l>,
+    pub blocks : Vec<DfLirBlock<'l>>
 }
-impl Debug for DfLirLine {
+impl Debug for DfLirLine<'_> {
     fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
         let mut flist = f.debug_list();
         flist.entry(&self.head);
@@ -18,112 +18,112 @@ impl Debug for DfLirLine {
 
 
 #[derive(Debug)]
-pub enum DfLirLineHead {
+pub enum DfLirLineHead<'l> {
     Function {
-        name   : String,
+        name   : &'l str,
         // TODO: Icon
         // TODO: Params
         hidden : bool
     },
     Process {
-        name   : String,
+        name   : &'l str,
         // TODO: Icon
         hidden : bool
     },
     PlayerEvent {
-        event : String
+        event : &'l str
     },
     EntityEvent {
-        event : String
+        event : &'l str
     }
 }
 
 #[derive(Debug)]
-pub enum DfLirBlock {
+pub enum DfLirBlock<'l> {
     PlayerAction {
-        action : String,
+        action : &'l str,
         target : DfLirTarget,
         // TODO: Params
         // TODO: Tags
     },
     IfPlayer {
-        action : String,
+        action : &'l str,
         not    : bool,
         target : DfLirTarget,
         // TODO: Params
         // TODO: Tags
-        then   : Vec<DfLirBlock>,
-        els    : Vec<DfLirBlock>
+        then   : Vec<DfLirBlock<'l>>,
+        els    : Vec<DfLirBlock<'l>>
     },
     NonPlayerAction {
-        action : String,
+        action : &'l str,
         target : DfLirTarget,
         // TODO: Params
         // TODO: Tags
     },
     IfNonPlayer {
-        action : String,
+        action : &'l str,
         not    : bool,
         target : DfLirTarget,
         // TODO: Params
         // TODO: Tags
-        then   : Vec<DfLirBlock>,
-        els    : Vec<DfLirBlock>
+        then   : Vec<DfLirBlock<'l>>,
+        els    : Vec<DfLirBlock<'l>>
     },
     SetVar {
-        action : String,
+        action : &'l str,
         // TODO: Params
         // TODO: Tags
     },
     IfVar {
-        action : String,
+        action : &'l str,
         not    : bool,
         // TODO: Params
         // TODO: Tags
-        then   : Vec<DfLirBlock>,
-        els    : Vec<DfLirBlock>
+        then   : Vec<DfLirBlock<'l>>,
+        els    : Vec<DfLirBlock<'l>>
     },
     GameAction {
-        action : String,
+        action : &'l str,
         // TODO: Params
         // TODO: Tagss
     },
     IfGame {
-        action : String,
+        action : &'l str,
         not    : bool,
         // TODO: Params
         // TODO: Tags
-        then   : Vec<DfLirBlock>,
-        els    : Vec<DfLirBlock>
+        then   : Vec<DfLirBlock<'l>>,
+        els    : Vec<DfLirBlock<'l>>
     },
     Control {
-        action : String,
+        action : &'l str,
         // TODO: Params
         // TODO: Tags
     },
     Repeat {
-        action    : String,
-        subaction : Option<String>,
+        action    : &'l str,
+        subaction : Option<&'l str>,
         not       : bool,
         target    : Option<DfLirTarget>,
         // TODO: Params
         // TODO: Tags
-        then      : Vec<DfLirBlock>
+        then      : Vec<DfLirBlock<'l>>
     },
     SelectEntity {
-        action    : String,
-        subaction : Option<String>,
+        action    : &'l str,
+        subaction : Option<&'l str>,
         not       : bool
         // TODO: Params
         // TODO: Tags
 
     },
     CallFuncion {
-        name    : String
+        fn_id : u128
         // TODO: Params
     },
     StartProcess {
-        name          : String,
+        name          : &'l str,
         targets       : DfLirProcessTargetMode,
         thread_locals : DfLirProcessThreadLocalMode
     }
@@ -138,7 +138,10 @@ pub enum DfLirTarget {
     Shooter,
     Victim,
     Projectile,
-    LastSpawned
+    LastSpawned,
+    AllPlayers,
+    AllMobs,
+    AllNonPlayers
 }
 
 #[derive(Debug)]

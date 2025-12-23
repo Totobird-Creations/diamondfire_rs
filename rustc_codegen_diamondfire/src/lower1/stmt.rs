@@ -7,7 +7,8 @@ use super::{
 use bridgecg_diamondfire::dfmir::DfMirStmt;
 use rustc_middle::mir::{
     Statement,
-    StatementKind
+    StatementKind,
+    NonDivergingIntrinsic
 };
 
 
@@ -27,8 +28,14 @@ pub fn stmt_to_dfmir<'tcx>(
         StatementKind::SetDiscriminant { .. }
         => todo!(),
 
-        StatementKind::Intrinsic(_)
-        => todo!(),
+        StatementKind::Intrinsic(box intrinsic)
+        => { match (intrinsic) {
+
+            NonDivergingIntrinsic::Assume(_) => { },
+
+            NonDivergingIntrinsic::CopyNonOverlapping(_) => todo!()
+
+        } },
 
         StatementKind::FakeRead(_)
         | StatementKind::AscribeUserType(_, _)

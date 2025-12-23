@@ -1,5 +1,7 @@
 #![feature(
-    rustc_private
+    rustc_private,
+    hash_set_entry,
+    negative_impls
 )]
 
 extern crate anstream;
@@ -12,14 +14,13 @@ use cli::Cli;
 mod ctx;
 use ctx::LinkingCtx;
 
+mod lower2;
+use lower2::dfmir_to_dflir;
+
 
 use bridgecg_diamondfire::{
     extern_names::ExternNameMap,
-    bridge_items::BridgeItems,
-    dfmir::{
-        DfMirStmt,
-        DfMirCall
-    }
+    bridge_items::BridgeItems
 };
 use std::{
     fs::File,
@@ -64,7 +65,7 @@ fn main() {
     };
     let extern_names = ExternNameMap::decode(extern_names);
 
-    let mut ctx = LinkingCtx::default();
+    let mut ctx = LinkingCtx::new(&bridge_items);
     // Queue all exported functions for linking.
     for (&fn_id, bridge_fn,) in &bridge_items.funcs {
         if (bridge_fn.exported) {
@@ -73,65 +74,8 @@ fn main() {
     }
 
     while let Some(fn_id) = ctx.pop_queued_fn() {
-        let bridge_fn = bridge_items.funcs.get(&fn_id).unwrap_or_else(|| panic!("{}", fn_id));
-        println!("{} ({}):", bridge_fn.name, fn_id);
-        for stmt in &bridge_fn.body {
-            println!("  {:?}", stmt);
-            // TODO
-            match (stmt) {
-
-                DfMirStmt::CopyTL { .. } => {
-                    // TODO
-                },
-                DfMirStmt::CopyLT { .. } => {
-                    // TODO
-                },
-                DfMirStmt::CopyTT { .. } => {
-                    // TODO
-                },
-
-                DfMirStmt::TNumber { .. } => {
-                    // TODO
-                },
-                DfMirStmt::TStruct { .. } => {
-                    // TODO
-                },
-                DfMirStmt::TEnum { .. } => {
-                    // TODO
-                },
-
-                DfMirStmt::RawFieldGet { .. } => {
-                    // TODO
-                },
-
-                DfMirStmt::Call { call, .. } => { match (call) {
-                    DfMirCall::Defined(fn_id) => {
-                        ctx.queue_link_fn(*fn_id);
-                        // TODO
-                    },
-                    DfMirCall::Ptr(_) => {
-                        // TODO
-                    },
-                    DfMirCall::Extern(_) => {
-                        // TODO
-                    },
-                    DfMirCall::Intrinsic(_) => {
-                        // TOOD
-                    }
-                } },
-                DfMirStmt::DropCall { fn_id, .. } => {
-                    ctx.queue_link_fn(*fn_id);
-                    // TODO
-                },
-
-                DfMirStmt::Return => {
-                    // TODO
-                },
-
-                DfMirStmt::Todo(_) => { },
-
-            }
-        }
+        let bridge_fn = bridge_items.funcs.get(&fn_id).unwrap();
+        lower2::dfmir_to_dflir(&mut ctx, fn_id, bridge_fn);
     }
 
     todo!();

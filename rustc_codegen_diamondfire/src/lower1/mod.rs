@@ -10,6 +10,7 @@ use rustc_middle::{
     mir::Body,
     ty::TyCtxt
 };
+use std::collections::HashMap;
 
 mod stmt;
 use stmt::stmt_to_dfmir;

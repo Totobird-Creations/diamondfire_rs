@@ -29,9 +29,9 @@ pub enum DfMirStmt {
     },
 
     TNumber {
-        dst      : DfMirTemporary,
+        dst        : DfMirTemporary,
         /// Representation depends on type.
-        df_value : i64
+        repr_value : i64
     },
     TStruct {
         dst    : DfMirTemporary,
@@ -41,6 +41,25 @@ pub enum DfMirStmt {
         dst     : DfMirTemporary,
         variant : DfMirTemporary,
         fields  : Vec<DfMirTemporary>
+    },
+
+    CheckedArithBinOp {
+        dst   : DfMirTemporary,
+        op    : DfMirCheckedArithBinOp,
+        left  : DfMirTemporary,
+        right : DfMirTemporary
+    },
+    BoolBinOp {
+        dst   : DfMirTemporary,
+        op    : DfMirBoolBinOp,
+        left  : DfMirTemporary,
+        right : DfMirTemporary
+    },
+    CondBinOp {
+        dst   : DfMirTemporary,
+        op    : DfMirCondBinOp,
+        left  : DfMirTemporary,
+        right : DfMirTemporary
     },
 
     RawFieldGet {
@@ -80,7 +99,7 @@ impl Debug for DfMirStmt { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
         Self::CopyLT { dst, src } => { write!(f, "{:?} = {:?}", dst, src)?; },
         Self::CopyTT { dst, src } => { write!(f, "{:?} = {:?}", dst, src)?; },
 
-        Self::TNumber { dst, df_value } => { write!(f, "{:?} = {:?}", dst, df_value)?; },
+        Self::TNumber { dst, repr_value } => { write!(f, "{:?} = {:?}", dst, repr_value)?; },
         Self::TStruct { dst, fields }   => {
             write!(f, "{:?} = struct {{ ", dst)?;
             for field in fields {
@@ -94,6 +113,22 @@ impl Debug for DfMirStmt { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
                 write!(f, "{:?}, ", field)?;
             }
             write!(f, "}}")?;
+        },
+
+        Self::CheckedArithBinOp { dst, op, left, right } => {
+            write!(f, "{:?} = {:?} {:?}? {:?}", dst, left, { match (op) {
+                DfMirCheckedArithBinOp::Add => "+"
+            } }, right)?;
+        },
+        Self::BoolBinOp { dst, op, left, right } => {
+            write!(f, "{:?} = {:?} {:?} {:?}", dst, left, { match (op) {
+                DfMirBoolBinOp::Xor => "|"
+            } }, right)?;
+        },
+        Self::CondBinOp { dst, op, left, right } => {
+            write!(f, "{:?} = {:?} {:?} {:?}", dst, left, { match (op) {
+                DfMirCondBinOp::LessThan => "<"
+            } }, right)?;
         },
 
         Self::RawFieldGet { dst, src, field } => {
@@ -119,6 +154,21 @@ impl Debug for DfMirStmt { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
     Ok(())
 } }
 
+#[derive(Encode, Decode, Debug)]
+pub enum DfMirCheckedArithBinOp {
+    Add
+}
+
+#[derive(Encode, Decode, Debug)]
+pub enum DfMirBoolBinOp {
+    Xor
+}
+
+#[derive(Encode, Decode, Debug)]
+pub enum DfMirCondBinOp {
+    LessThan
+}
+
 #[derive(Encode, Decode)]
 pub enum DfMirCall {
     Defined(u128),
@@ -130,7 +180,7 @@ impl Debug for DfMirCall { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
     match (self) {
         Self::Defined(func_id) => { write!(f, "{}", func_id)?; },
         Self::Ptr(ptr)         => { write!(f, "*{:?}", ptr)?; },
-        Self::Extern(name)     => { write!(f, "extern.{:?}", name)?; },
+        Self::Extern(name)     => { write!(f, "extern.{}", name)?; },
         Self::Intrinsic(name)  => { write!(f, "intrinsic.{:?}", name)?; }
     }
     Ok(())
@@ -151,7 +201,7 @@ impl Debug for DfMirTemporary { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Re
     write!(f, "temp_{}", self.0)
 } }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Clone, Copy, Encode, Decode, Debug)]
 pub enum DfMirCallIntrinsic {
     Abort,
     AbsF32,

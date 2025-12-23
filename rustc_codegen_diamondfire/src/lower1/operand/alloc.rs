@@ -32,6 +32,7 @@ pub fn alloc_to_dfmir<'tcx>(
     ty     : Ty<'tcx>,
     alloc  : &Allocation,
     offset : Size,
+    meta   : u64,
     out    : &mut Vec<DfMirStmt>,
     span   : Span
 ) -> DfMirTemporary {
@@ -41,7 +42,7 @@ pub fn alloc_to_dfmir<'tcx>(
     match (ty.kind()) {
 
         TyKind::Bool|TyKind::Int(_)|TyKind::Uint(_)|TyKind::Float(_) => {
-            let range  = AllocRange { start : offset, size : layout.size };
+            let range = AllocRange { start : offset, size : layout.size };
             let Scalar::Int(scalar_int) = alloc.read_scalar(&ctx.tcx.data_layout, range, false).unwrap()
                 else { unreachable!() };
             scalar_int_to_dfmir(ctx, ty, scalar_int, out)
@@ -55,7 +56,7 @@ pub fn alloc_to_dfmir<'tcx>(
                 for (field_idx, field_def,) in variant.fields.iter_enumerated() {
                     let field_ty     = field_def.ty(ctx.tcx, generics);
                     let field_offset = layout.fields.offset(field_idx.as_usize());
-                    field_temps.push(alloc_to_dfmir(ctx, field_ty, alloc, offset + field_offset, out, span));
+                    field_temps.push(alloc_to_dfmir(ctx, field_ty, alloc, offset + field_offset, 0, out, span));
                 }
                 let dst = ctx.next_temp();
                 out.push(DfMirStmt::TStruct { dst, fields : field_temps });
@@ -73,6 +74,15 @@ pub fn alloc_to_dfmir<'tcx>(
             }
 
         } },
+
+        TyKind::Str => {
+            let range = AllocRange { start : offset, size : layout.size };
+            todo!("{:?}", range)
+        },
+
+        TyKind::Ref(_, ty, mutability) => {
+            todo!("{:?} {:?}", ty, mutability);
+        },
 
         tyk => unimplemented!("{:?}", tyk)
     }

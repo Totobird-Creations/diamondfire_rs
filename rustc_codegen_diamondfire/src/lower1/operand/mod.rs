@@ -6,6 +6,7 @@ use bridgecg_diamondfire::dfmir::{
     DfMirStmt,
     DfMirTemporary
 };
+use rustc_abi::Size;
 use rustc_middle::mir::{
     Operand,
     Const,
@@ -52,7 +53,22 @@ pub fn operand_to_dfmir<'tcx>(
 
                 ConstValue::ZeroSized => todo!(),
 
-                ConstValue::Slice { alloc_id, meta } => todo!(),
+                ConstValue::Slice { alloc_id, meta } => { match (ctx.tcx.global_alloc(alloc_id)) {
+
+                    GlobalAlloc::Function { instance } => todo!(),
+
+                    GlobalAlloc::VTable(ty, raw_list) => todo!(),
+
+                    GlobalAlloc::Static(def_id) => todo!(),
+
+                    GlobalAlloc::Memory(const_allocation) => {
+                        let alloc_df = alloc_to_dfmir(ctx, ty, const_allocation.inner(), Size::ZERO, meta, out, const_operand.span);
+                        todo!("{:?}", alloc_df);
+                    },
+
+                    GlobalAlloc::TypeId { ty } => todo!()
+
+                } },
 
                 ConstValue::Indirect { alloc_id, offset } => { match (ctx.tcx.global_alloc(alloc_id)) {
 
@@ -62,7 +78,7 @@ pub fn operand_to_dfmir<'tcx>(
 
                     GlobalAlloc::Static(_) => todo!(),
 
-                    GlobalAlloc::Memory(const_allocation) => { alloc_to_dfmir(ctx, ty, const_allocation.inner(), offset, out, const_operand.span) },
+                    GlobalAlloc::Memory(const_allocation) => { alloc_to_dfmir(ctx, ty, const_allocation.inner(), offset, 0, out, const_operand.span) },
 
                     GlobalAlloc::TypeId { .. } => todo!()
 
