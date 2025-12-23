@@ -86,7 +86,9 @@ pub fn operand_to_dfmir<'tcx>(
 
             } }
 
-        } }
+        } },
+
+        Operand::RuntimeChecks(_) => todo!()
 
     }
 }

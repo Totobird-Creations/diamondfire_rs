@@ -14,8 +14,7 @@ use rustc_middle::mir::{
     Rvalue,
     CastKind,
     AggregateKind,
-    BinOp,
-    NullOp
+    BinOp
 };
 
 
@@ -145,13 +144,6 @@ pub fn rvalue_to_dfmir<'tcx>(
 
             }
             dst
-        },
-
-        Rvalue::NullaryOp(null_op) => {
-            match (null_op) {
-                NullOp::RuntimeChecks(_) => { }
-            }
-            DfMirTemporary::PLACEHOLDER
         },
 
         Rvalue::UnaryOp(un_op, operand) => todo!(),
