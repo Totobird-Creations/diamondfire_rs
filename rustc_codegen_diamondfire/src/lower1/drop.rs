@@ -1,8 +1,8 @@
 use crate::hash::HashingUtil;
 use super::Lower1Ctx;
-use bridgecg_diamondfire::dfmir::{
-    DfMirStmt,
-    DfMirTemporary
+use bridgecg_diamondfire::{
+    dfmir::DfMirStmt,
+    Temporary
 };
 use rustc_abi::VariantIdx;
 use rustc_middle::ty::{
@@ -16,7 +16,7 @@ use rustc_middle::ty::{
 pub fn drop_to_dfmir<'tcx>(
     ctx : &mut Lower1Ctx<'tcx, '_>,
     ty  : Ty<'tcx>,
-    src : DfMirTemporary,
+    src : Temporary,
     out : &mut Vec<DfMirStmt>
 ) {
 

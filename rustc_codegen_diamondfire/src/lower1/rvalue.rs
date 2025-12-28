@@ -3,18 +3,21 @@ use super::{
     place_load_to_dfmir,
     operand_to_dfmir
 };
-use bridgecg_diamondfire::dfmir::{
-    DfMirStmt,
-    DfMirTemporary,
-    DfMirCheckedArithBinOp,
-    DfMirBoolBinOp,
-    DfMirCondBinOp
+use bridgecg_diamondfire::{
+    dfmir::{
+        DfMirStmt,
+        DfMirCheckedArithBinOp,
+        DfMirBoolBinOp,
+        DfMirCondBinOp
+    },
+    Temporary
 };
 use rustc_middle::mir::{
     Rvalue,
     CastKind,
     AggregateKind,
-    BinOp
+    BinOp,
+    UnOp
 };
 
 
@@ -22,7 +25,7 @@ pub fn rvalue_to_dfmir<'tcx>(
     ctx    : &mut Lower1Ctx<'tcx, '_>,
     rvalue : &Rvalue<'tcx>,
     out    : &mut Vec<DfMirStmt>
-) -> DfMirTemporary {
+) -> Temporary {
     match (rvalue) {
 
         Rvalue::Use(operand) => { operand_to_dfmir(ctx, operand, out) },
@@ -37,7 +40,11 @@ pub fn rvalue_to_dfmir<'tcx>(
 
         Rvalue::ThreadLocalRef(def_id) => todo!(),
 
-        Rvalue::RawPtr(raw_ptr_kind, place) => todo!(),
+        Rvalue::RawPtr(raw_ptr_kind, place) => {
+            let place_df = place_load_to_dfmir(ctx, place, out).0;
+            out.push(DfMirStmt::todo(&format!("ptr{:?} val {:?}", raw_ptr_kind, place_df)));
+            place_df
+        },
 
         Rvalue::Cast(kind, operand, ty) => { match (kind) {
 
@@ -58,11 +65,17 @@ pub fn rvalue_to_dfmir<'tcx>(
 
             CastKind::IntToFloat => todo!(),
 
-            CastKind::PtrToPtr => todo!(),
+            CastKind::PtrToPtr => {
+                // TODO: Handle conversion to/from reference
+                operand_to_dfmir(ctx, operand, out)
+            },
 
             CastKind::FnPtrToPtr => todo!(),
 
-            CastKind::Transmute => todo!(),
+            CastKind::Transmute => {
+                // TODO: Type change
+                operand_to_dfmir(ctx, operand, out)
+            },
 
             CastKind::Subtype => todo!()
 
@@ -111,9 +124,19 @@ pub fn rvalue_to_dfmir<'tcx>(
 
                 BinOp::BitAnd => todo!(),
 
-                BinOp::BitOr => todo!(),
+                BinOp::BitOr => { out.push(DfMirStmt::BoolBinOp {
+                    dst,
+                    op    : DfMirBoolBinOp::Or,
+                    left  : left_df,
+                    right : right_df
+                }); },
 
-                BinOp::Shl => todo!(),
+                BinOp::Shl => { out.push(DfMirStmt::CheckedArithBinOp {
+                    dst,
+                    op    : DfMirCheckedArithBinOp::Shl,
+                    left  : left_df,
+                    right : right_df
+                }); },
 
                 BinOp::ShlUnchecked => todo!(),
 
@@ -146,7 +169,20 @@ pub fn rvalue_to_dfmir<'tcx>(
             dst
         },
 
-        Rvalue::UnaryOp(un_op, operand) => todo!(),
+        Rvalue::UnaryOp(un_op, operand) => {
+            let operand_df = operand_to_dfmir(ctx, operand, out);
+            let dst      = ctx.next_temp();
+            match (un_op) {
+
+                UnOp::Not => todo!(),
+
+                UnOp::Neg => todo!(),
+
+                UnOp::PtrMetadata => todo!()
+
+            }
+            dst
+        },
 
         Rvalue::Discriminant(place) => {
             let place_df = place_load_to_dfmir(ctx, place, out).0;

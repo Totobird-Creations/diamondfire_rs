@@ -63,9 +63,9 @@ fn main() {
         dcx.abort_if_errors();
         unreachable!()
     };
-    let extern_names = ExternNameMap::decode(extern_names);
+    let extern_names = ExternNameMap::decode(extern_names).unwrap();
 
-    let mut ctx = LinkingCtx::new(&bridge_items);
+    let mut ctx = LinkingCtx::new(&extern_names, &bridge_items);
     // Queue all exported functions for linking.
     for (&fn_id, bridge_fn,) in &bridge_items.funcs {
         if (bridge_fn.exported) {
@@ -75,10 +75,11 @@ fn main() {
 
     while let Some(fn_id) = ctx.pop_queued_fn() {
         let bridge_fn = bridge_items.funcs.get(&fn_id).unwrap();
-        lower2::dfmir_to_dflir(&mut ctx, fn_id, bridge_fn);
+        let lir_fn    = lower2::dfmir_to_dflir(&mut ctx, fn_id, bridge_fn);
+        println!("\x1b[92m{:#?}\x1b[0m", lir_fn);
     }
 
-    todo!();
-
     dcx.abort_if_errors();
+
+    todo!();
 }

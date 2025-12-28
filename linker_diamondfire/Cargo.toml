@@ -16,7 +16,14 @@ unused_parens = "allow"
 
 [dependencies.bridgecg_diamondfire]
 path     = "../bridgecg_diamondfire"
-features = [ "extern_names", "bridge_items", "dflir" ]
+features = [
+    "extern_names",
+    "bridge_items",
+    "dflir",
+
+    "bincode",
+    "static_intern"
+]
 
 [dependencies.static-intern]
 git    = "https://github.com/Totobird-Creations/static-intern"

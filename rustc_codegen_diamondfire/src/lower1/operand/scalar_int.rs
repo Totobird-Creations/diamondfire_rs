@@ -1,7 +1,7 @@
 use super::Lower1Ctx;
-use bridgecg_diamondfire::dfmir::{
-    DfMirStmt,
-    DfMirTemporary
+use bridgecg_diamondfire::{
+    dfmir::DfMirStmt,
+    Temporary
 };
 use rustc_abi::VariantIdx;
 use rustc_middle::ty::{
@@ -19,7 +19,7 @@ pub fn scalar_int_to_dfmir<'tcx>(
     ty         : Ty<'tcx>,
     scalar_int : ScalarInt,
     out        : &mut Vec<DfMirStmt>
-) -> DfMirTemporary {
+) -> Temporary {
     match (ty.kind()) {
 
         TyKind::Int(int_ty) => {

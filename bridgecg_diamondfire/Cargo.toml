@@ -7,12 +7,14 @@ description = "Codegen/linker common datatypes and functions for the DiamondFire
 edition = "2024"
 
 [features]
-extern_names = [ "dep:bincode" ]
-bridge_items = [ "dep:bincode", "dfmir" ]
-dfmir        = [ "dep:bincode", "rustc_private" ]
+extern_names = [ ]
+bridge_items = [ "dfmir" ]
+dfmir        = [ "rustc_private" ]
 dflir        = [ ]
 
 rustc_private = [ ]
+bincode       = [ "dep:bincode" ]
+static_intern = [ "dep:static-intern" ]
 
 [package.metadata.rust-analyzer]
 rustc_private = true
@@ -23,4 +25,9 @@ unused_parens = "allow"
 
 [dependencies.bincode]
 version  = "2.0"
+optional = true
+
+[dependencies.static-intern]
+git      = "https://github.com/Totobird-Creations/static-intern"
+commit   = "0305f17fa72426c2afe8c36a621528e25e16c6b6"
 optional = true

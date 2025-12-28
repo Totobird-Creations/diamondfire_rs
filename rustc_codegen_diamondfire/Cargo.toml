@@ -23,4 +23,8 @@ double_parens = "allow"
 
 [dependencies.bridgecg_diamondfire]
 path     = "../bridgecg_diamondfire"
-features = [ "bridge_items" ]
+features = [
+    "bridge_items",
+
+    "bincode"
+]

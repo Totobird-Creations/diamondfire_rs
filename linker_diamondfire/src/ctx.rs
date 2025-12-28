@@ -1,9 +1,16 @@
-use bridgecg_diamondfire::bridge_items::BridgeItems;
+use bridgecg_diamondfire::{
+    extern_names::{
+        ExternNameMap,
+        ExternName
+    },
+    bridge_items::BridgeItems
+};
 use std::collections::BTreeSet;
 
 
 pub struct LinkingCtx<'l> {
 
+    extern_names : &'l ExternNameMap,
     bridge_items : &'l BridgeItems,
 
     fns_to_link : BTreeSet<u128>,
@@ -12,14 +19,23 @@ pub struct LinkingCtx<'l> {
 }
 
 impl<'l> LinkingCtx<'l> {
-    pub fn new(bridge_items : &'l BridgeItems) -> Self { Self {
+    pub fn new(extern_names : &'l ExternNameMap, bridge_items : &'l BridgeItems) -> Self { Self {
 
+        extern_names,
         bridge_items,
 
         fns_to_link : BTreeSet::new(),
         linked_fns  : BTreeSet::new()
 
     } }
+}
+
+impl<'l> LinkingCtx<'l> {
+    pub fn lookup_extern(&self, extern_name : &str) -> &'l ExternName {
+        let Some(entry) = self.extern_names.names.get(extern_name)
+            else { panic!("No extern with name {:?}", extern_name); };
+        entry
+    }
 }
 
 impl LinkingCtx<'_> {

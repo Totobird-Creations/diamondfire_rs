@@ -4,17 +4,18 @@ use std::{
     io::{ Read, Write },
     collections::BTreeMap
 };
-use bincode::{ Encode, Decode };
 
 
-#[derive(Default, Encode, Decode)]
+#[derive(Default)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub struct BridgeItems {
     pub extern_names : Option<Vec<u8>>,
     pub funcs        : BTreeMap<u128, FuncItem>
 }
 
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub struct FuncItem {
 
     /// The source name of the function, including crate name and module path.
@@ -38,7 +39,8 @@ pub struct FuncItem {
 
 }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum FuncItemInline {
 
     /// Determine whether the function should be inlined based on dfJSON cost, usages, etc.
@@ -64,6 +66,7 @@ impl Debug for BridgeItems {
     }
 }
 
+#[cfg(feature = "bincode")]
 impl BridgeItems {
 
     pub fn read_decode<R : Read>(f : &mut R) -> Result<Self, bincode::error::DecodeError> {
@@ -73,6 +76,10 @@ impl BridgeItems {
     pub fn encode_write<W : Write>(&self, f : &mut W) -> Result<(), bincode::error::EncodeError> {
         bincode::encode_into_std_write(self, f, bincode::config::standard()).map(|_| ())
     }
+
+}
+
+impl BridgeItems {
 
     pub fn append(&mut self, other : &mut BridgeItems) {
         if let Some(extern_names) = other.extern_names.take() {

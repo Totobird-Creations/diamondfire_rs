@@ -2,9 +2,9 @@ use super::{
     Lower1Ctx,
     place_load_to_dfmir
 };
-use bridgecg_diamondfire::dfmir::{
-    DfMirStmt,
-    DfMirTemporary
+use bridgecg_diamondfire::{
+    dfmir::DfMirStmt,
+    Temporary
 };
 use rustc_abi::Size;
 use rustc_middle::mir::{
@@ -28,7 +28,7 @@ pub fn operand_to_dfmir<'tcx>(
     ctx     : &mut Lower1Ctx<'tcx, '_>,
     operand : &Operand<'tcx>,
     out     : &mut Vec<DfMirStmt>
-) -> DfMirTemporary {
+) -> Temporary {
     match (operand) {
 
         Operand::Copy(place)
@@ -61,10 +61,7 @@ pub fn operand_to_dfmir<'tcx>(
 
                     GlobalAlloc::Static(def_id) => todo!(),
 
-                    GlobalAlloc::Memory(const_allocation) => {
-                        let alloc_df = alloc_to_dfmir(ctx, ty, const_allocation.inner(), Size::ZERO, meta, out, const_operand.span);
-                        todo!("{:?}", alloc_df);
-                    },
+                    GlobalAlloc::Memory(const_allocation) => { alloc_to_dfmir(ctx, ty, const_allocation.inner(), Size::ZERO, meta, out, const_operand.span) },
 
                     GlobalAlloc::TypeId { ty } => todo!()
 

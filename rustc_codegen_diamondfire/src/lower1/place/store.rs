@@ -1,8 +1,8 @@
 use super::Lower1Ctx;
-use bridgecg_diamondfire::dfmir::{
-    DfMirStmt,
-    DfMirLocal,
-    DfMirTemporary
+use bridgecg_diamondfire::{
+    dfmir::DfMirStmt,
+    Local,
+    Temporary
 };
 use rustc_middle::mir::{
     Place,
@@ -13,10 +13,10 @@ use rustc_middle::mir::{
 pub fn place_store_to_dfmir<'tcx>(
     ctx   : &mut Lower1Ctx<'tcx, '_>,
     place : &Place<'tcx>,
-    src   : DfMirTemporary,
+    src   : Temporary,
     out   : &mut Vec<DfMirStmt>
 ) {
-    let local = DfMirLocal(place.local.as_usize());
+    let local = Local(place.local.as_usize());
 
     // Start by loading the place.
     // Chances are, this will be optimised out.

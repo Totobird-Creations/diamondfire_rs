@@ -1,24 +1,29 @@
 use crate::ctx::LinkingCtx;
 use bridgecg_diamondfire::{
-    dfmir::{
-        DfMirCallIntrinsic,
-        DfMirTemporary
-    },
+    dfmir::DfMirCallIntrinsic,
     dflir::{
         DfLirBlock,
         DfLirTarget
-    }
+    },
+    Temporary
 };
 
 
-pub fn intrinsic_call_to_dflir(ctx : &mut LinkingCtx, dst : DfMirTemporary, intrinsic : DfMirCallIntrinsic, args : &[DfMirTemporary], out : &mut Vec<DfLirBlock<'static>>) {
+pub fn intrinsic_call_to_dflir(ctx : &mut LinkingCtx, dst : Temporary, intrinsic : DfMirCallIntrinsic, args : &[Temporary], out : &mut Vec<DfLirBlock<'static>>) {
     match (intrinsic) {
 
         DfMirCallIntrinsic::Abort => {
             out.extend([
                 // TODO: Send abort message.
-                DfLirBlock::PlayerAction { action : "Kick", target : DfLirTarget::AllPlayers },
-                DfLirBlock::Control { action : "End" }
+                DfLirBlock::PlayerAction {
+                    action : "Kick",
+                    target : DfLirTarget::AllPlayers,
+                    args   : Vec::new()
+                },
+                DfLirBlock::Control {
+                    action : "End",
+                    args   : Vec::new()
+                }
             ]);
         },
 

@@ -3,9 +3,9 @@ use super::{
     Lower1Ctx,
     scalar_int_to_dfmir
 };
-use bridgecg_diamondfire::dfmir::{
-    DfMirStmt,
-    DfMirTemporary
+use bridgecg_diamondfire::{
+    dfmir::DfMirStmt,
+    Temporary
 };
 use rustc_abi::{
     Size,
@@ -35,7 +35,7 @@ pub fn alloc_to_dfmir<'tcx>(
     meta   : u64,
     out    : &mut Vec<DfMirStmt>,
     span   : Span
-) -> DfMirTemporary {
+) -> Temporary {
     let pci    = TypingEnv::fully_monomorphized().as_query_input(ty);
     let layout = ctx.tcx.layout_of(pci).unwrap();
 
@@ -70,18 +70,24 @@ pub fn alloc_to_dfmir<'tcx>(
             AdtKind::Union => {
                 diag::unions_unsupported(ctx.tcx.dcx(), span);
                 out.push(DfMirStmt::todo("unions"));
-                DfMirTemporary::PLACEHOLDER
+                Temporary::PLACEHOLDER
             }
 
         } },
 
-        TyKind::Str => {
-            let range = AllocRange { start : offset, size : layout.size };
-            todo!("{:?}", range)
-        },
-
         TyKind::Ref(_, ty, mutability) => {
-            todo!("{:?} {:?}", ty, mutability);
+            let bytes = alloc.inspect_with_uninit_and_ptr_outside_interpreter(0..alloc.size().bytes_usize());
+            match (ty.kind()) {
+
+                TyKind::Str => {
+                    let value = String::from_utf8(bytes.to_vec()).unwrap();
+                    let dst   = ctx.next_temp();
+                    out.push(DfMirStmt::TString { dst, value });
+                    dst
+                },
+
+                tyk => unimplemented!("{:?}", tyk)
+            }
         },
 
         tyk => unimplemented!("{:?}", tyk)

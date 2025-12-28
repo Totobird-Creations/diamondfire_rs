@@ -2,82 +2,89 @@
 //!
 //! dfMIR is quite similar to rsMIR but with different statement types.
 
+use crate::{
+    Local,
+    Temporary
+};
 use core::{
     fmt::{ self, Debug, Formatter },
     panic::Location
 };
-use bincode::{ Encode, Decode };
 
 mod ty;
 pub use ty::*;
 
 
-#[derive(Encode, Decode)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum DfMirStmt {
 
     CopyTL {
-        dst : DfMirLocal,
-        src : DfMirTemporary
+        dst : Local,
+        src : Temporary
     },
     CopyLT {
-        dst : DfMirTemporary,
-        src : DfMirLocal
+        dst : Temporary,
+        src : Local
     },
     CopyTT {
-        dst : DfMirTemporary,
-        src : DfMirTemporary
+        dst : Temporary,
+        src : Temporary
     },
 
     TNumber {
-        dst        : DfMirTemporary,
+        dst        : Temporary,
         /// Representation depends on type.
         repr_value : i64
     },
+    TString {
+        dst   : Temporary,
+        value : String
+    },
     TStruct {
-        dst    : DfMirTemporary,
-        fields : Vec<DfMirTemporary>
+        dst    : Temporary,
+        fields : Vec<Temporary>
     },
     TEnum {
-        dst     : DfMirTemporary,
-        variant : DfMirTemporary,
-        fields  : Vec<DfMirTemporary>
+        dst     : Temporary,
+        variant : Temporary,
+        fields  : Vec<Temporary>
     },
 
     CheckedArithBinOp {
-        dst   : DfMirTemporary,
+        dst   : Temporary,
         op    : DfMirCheckedArithBinOp,
-        left  : DfMirTemporary,
-        right : DfMirTemporary
+        left  : Temporary,
+        right : Temporary
     },
     BoolBinOp {
-        dst   : DfMirTemporary,
+        dst   : Temporary,
         op    : DfMirBoolBinOp,
-        left  : DfMirTemporary,
-        right : DfMirTemporary
+        left  : Temporary,
+        right : Temporary
     },
     CondBinOp {
-        dst   : DfMirTemporary,
+        dst   : Temporary,
         op    : DfMirCondBinOp,
-        left  : DfMirTemporary,
-        right : DfMirTemporary
+        left  : Temporary,
+        right : Temporary
     },
 
     RawFieldGet {
-        dst   : DfMirTemporary,
-        src   : DfMirTemporary,
+        dst   : Temporary,
+        src   : Temporary,
         field : usize
     },
 
     Call {
-        dst  : DfMirTemporary,
+        dst  : Temporary,
         call : DfMirCall,
-        args : Vec<DfMirTemporary>
+        args : Vec<Temporary>
         // TODO: Returns
     },
     DropCall {
         fn_id : u128,
         /// This value needs to be `&mut` before calling.
-        value : DfMirTemporary
+        value : Temporary
     },
 
     Return,
@@ -100,7 +107,8 @@ impl Debug for DfMirStmt { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
         Self::CopyTT { dst, src } => { write!(f, "{:?} = {:?}", dst, src)?; },
 
         Self::TNumber { dst, repr_value } => { write!(f, "{:?} = {:?}", dst, repr_value)?; },
-        Self::TStruct { dst, fields }   => {
+        Self::TString { dst, value }      => { write!(f, "{:?} = {:?}", dst, value)?; },
+        Self::TStruct { dst, fields }     => {
             write!(f, "{:?} = struct {{ ", dst)?;
             for field in fields {
                 write!(f, "{:?}, ", field)?;
@@ -117,12 +125,14 @@ impl Debug for DfMirStmt { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
 
         Self::CheckedArithBinOp { dst, op, left, right } => {
             write!(f, "{:?} = {:?} {:?}? {:?}", dst, left, { match (op) {
-                DfMirCheckedArithBinOp::Add => "+"
+                DfMirCheckedArithBinOp::Add => "+",
+                DfMirCheckedArithBinOp::Shl => "<<"
             } }, right)?;
         },
         Self::BoolBinOp { dst, op, left, right } => {
             write!(f, "{:?} = {:?} {:?} {:?}", dst, left, { match (op) {
-                DfMirBoolBinOp::Xor => "|"
+                DfMirBoolBinOp::Or  => "|",
+                DfMirBoolBinOp::Xor => "^"
             } }, right)?;
         },
         Self::CondBinOp { dst, op, left, right } => {
@@ -154,25 +164,30 @@ impl Debug for DfMirStmt { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
     Ok(())
 } }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum DfMirCheckedArithBinOp {
-    Add
+    Add,
+    Shl
 }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum DfMirBoolBinOp {
+    Or,
     Xor
 }
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum DfMirCondBinOp {
     LessThan
 }
 
-#[derive(Encode, Decode)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum DfMirCall {
     Defined(u128),
-    Ptr(DfMirTemporary),
+    Ptr(Temporary),
     Extern(String),
     Intrinsic(DfMirCallIntrinsic)
 }
@@ -186,22 +201,8 @@ impl Debug for DfMirCall { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result 
     Ok(())
 } }
 
-#[derive(Clone, Copy, Encode, Decode)]
-pub struct DfMirLocal(pub usize);
-impl Debug for DfMirLocal { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
-    write!(f, "local_{}", self.0)
-} }
-
-#[derive(Clone, Copy, Encode, Decode)]
-pub struct DfMirTemporary(pub usize);
-impl DfMirTemporary {
-    pub const PLACEHOLDER : Self = Self(usize::MAX); // TODO: Remove
-}
-impl Debug for DfMirTemporary { fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
-    write!(f, "temp_{}", self.0)
-} }
-
-#[derive(Clone, Copy, Encode, Decode, Debug)]
+#[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum DfMirCallIntrinsic {
     Abort,
     AbsF32,

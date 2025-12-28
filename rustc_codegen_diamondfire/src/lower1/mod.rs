@@ -1,16 +1,13 @@
 use crate::cfr::{ CfrTree, CfrBranch };
 use bridgecg_diamondfire::{
     bridge_items::BridgeItems,
-    dfmir::{
-        DfMirStmt,
-        DfMirTemporary
-    }
+    dfmir::DfMirStmt,
+    Temporary
 };
 use rustc_middle::{
     mir::Body,
     ty::TyCtxt
 };
-use std::collections::HashMap;
 
 mod stmt;
 use stmt::stmt_to_dfmir;
@@ -38,14 +35,14 @@ struct Lower1Ctx<'tcx, 'bi> {
     tcx          : TyCtxt<'tcx>,
     body         : &'tcx Body<'tcx>,
     bridge_items : &'bi mut BridgeItems,
-    next_temp    : DfMirTemporary
+    next_temp    : Temporary
 }
 
 impl Lower1Ctx<'_, '_> {
-    pub fn next_temp(&mut self) -> DfMirTemporary {
+    pub fn next_temp(&mut self) -> Temporary {
         let x = self.next_temp.0;
         self.next_temp.0 += 1;
-        DfMirTemporary(x)
+        Temporary(x)
     }
 }
 
@@ -60,7 +57,7 @@ pub fn mir_to_dfmir<'tcx>(
         tcx,
         body,
         bridge_items,
-        next_temp    : DfMirTemporary(0)
+        next_temp    : Temporary::ZERO
     };
     let mut out = Vec::new();
     for branch in &cfr.branches {

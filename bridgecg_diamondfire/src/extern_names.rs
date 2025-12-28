@@ -1,6 +1,7 @@
 //! Extern function name mappings.
 
 
+use crate::VarScope;
 use std::{
     collections::hash_map::{
         HashMap,
@@ -8,15 +9,16 @@ use std::{
     },
     io::Write
 };
-use bincode::{ Encode, Decode };
 
 
-#[derive(Encode, Decode, Debug)]
+#[derive(Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub struct ExternNameMap {
     pub names : HashMap<String, ExternName>
 }
 
-#[derive(PartialEq, Eq, Encode, Decode, Debug)]
+#[derive(PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum ExternName {
     OpaqueTy,
     ValueTy(ValueTy),
@@ -32,10 +34,11 @@ pub enum ExternName {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Encode, Decode, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum ActionBlockKind {
     PlayerAction,
-    NpcAction,
+    NonPlayerAction,
     SetVar,
     GameAction,
     SelectEntity,
@@ -44,7 +47,7 @@ pub enum ActionBlockKind {
 impl From<&str> for ActionBlockKind {
     fn from(value : &str) -> Self { match (value) {
         "PLAYER ACTION" => Self::PlayerAction,
-        "ENTITY ACTION" => Self::NpcAction,
+        "ENTITY ACTION" => Self::NonPlayerAction,
         "SET VARIABLE"  => Self::SetVar,
         "GAME ACTION"   => Self::GameAction,
         "SELECT OBJECT" => Self::SelectEntity,
@@ -53,7 +56,8 @@ impl From<&str> for ActionBlockKind {
     } }
 }
 
-#[derive(PartialEq, Eq, Encode, Decode, Debug)]
+#[derive(PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub enum ValueTy {
     String,
     Text,
@@ -66,14 +70,6 @@ pub enum ValueTy {
     Item,
     List,
     Dict
-}
-
-#[derive(PartialEq, Eq, Encode, Decode, Debug)]
-pub enum VarScope {
-    Local,
-    ThreadLocal,
-    Session,
-    Persistent
 }
 
 
@@ -123,6 +119,11 @@ impl ExternNameMap {
             }
         }
     }
+
+}
+
+#[cfg(feature = "bincode")]
+impl ExternNameMap {
 
     pub fn decode(b : &[u8]) -> Result<Self, bincode::error::DecodeError> {
         bincode::decode_from_slice(b, bincode::config::standard()).map(|(enm, _,)| enm)
