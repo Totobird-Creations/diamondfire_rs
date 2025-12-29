@@ -1,24 +1,25 @@
 use diamondfire_sys::{
     df_string,
-    DF_ACTION__setSPECIALSpace_variable__String
+    consts::DF_CONST__String,
+    action::DF_ACTION__SetVar__String
 };
 use core::{
     borrow::Borrow,
-    fmt,
-    ops::Deref
+    fmt::{ self, Display, Formatter },
+    ops::Deref, str
 };
 
 
 #[derive(Clone)]
 pub struct String {
-    _opaque : df_string
+    raw : &'static df_string
 }
 
 impl String {
     #[inline(always)]
-    pub fn raw(self) -> df_string { self._opaque }
+    pub fn to_raw(self) -> &'static df_string { self.raw }
     #[inline(always)]
-    pub fn from_raw(raw : df_string) -> Self { Self { _opaque : raw } }
+    pub fn from_raw(raw : &'static df_string) -> Self { Self { raw } }
 }
 
 
@@ -26,7 +27,7 @@ impl String {
 
     #[inline(always)]
     pub fn new() -> String {
-        String { _opaque : df_string::from_str("") }
+        String { raw : DF_CONST__String() }
     }
 
     // TODO: from_utf8
@@ -36,16 +37,16 @@ impl String {
     // TODO: into_bytes
 
     #[inline(always)]
-    pub fn as_str(&self) -> &str {
-        self._opaque.into_str()
-    }
+    pub fn as_str(&self) -> &str { unsafe {
+        str::from_raw_parts(self.raw as (*const df_string) as (*const u8), self.len())
+    } }
 
     // TODO: as_mut_str
 
     #[inline(always)]
     pub fn push_str(&mut self, s : &str) { unsafe {
-        DF_ACTION__setSPECIALSpace_variable__String(
-            df_string::from_str("No spaces"),
+        DF_ACTION__SetVar__String(
+            "No spaces" as (*const str) as (*const df_string),
             self as *mut _,
             self.as_str(),
             s
@@ -140,7 +141,11 @@ impl Deref for String {
 // TODO: DerefMut
 
 
-// TODO: Display
+impl Display for String {
+    fn fmt(&self, f : &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
 
 
 // TODO: Eq

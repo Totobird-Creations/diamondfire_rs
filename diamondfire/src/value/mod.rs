@@ -1,5 +1,5 @@
-// mod string;
-// pub use string::*;
+mod string;
+pub use string::*;
 
 // mod text;
 // pub use text::*;

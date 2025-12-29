@@ -7,7 +7,8 @@
 #![feature(
     core_intrinsics,
     decl_macro,
-    formatting_options
+    formatting_options,
+    str_from_raw_parts
 )]
 
 #![cfg_attr(doc, feature(doc_cfg))]
@@ -26,7 +27,6 @@ pub use diamondfire_sys as _;
 
 
 pub mod value;
-pub mod debug;
 
 pub mod std;
 
@@ -37,8 +37,6 @@ pub mod prelude {
     pub use diamondfire_macros::*;
     #[doc(inline)]
     pub use super::value::*;
-    #[doc(inline)]
-    pub use super::debug::println;
     #[doc(inline)]
     pub use super::std::prelude::*;
 }

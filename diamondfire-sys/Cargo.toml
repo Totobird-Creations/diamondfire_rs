@@ -39,4 +39,7 @@ version = "1.0"
 
 [build-dependencies.bridgecg_diamondfire]
 path     = "../bridgecg_diamondfire"
-features = [ "extern_names" ]
+features = [
+    "extern_names",
+    "bincode"
+]

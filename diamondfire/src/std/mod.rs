@@ -15,6 +15,8 @@ use core::{
 
 // pub mod string;
 
+pub mod macros;
+
 
 /// Common types and functions.
 pub mod prelude {
@@ -25,6 +27,11 @@ pub mod prelude {
 
     // #[doc(inline)]
     // pub use super::string::{ String, ToString };
+
+    pub use super::macros::{
+        format,
+        println
+    };
 
 }
 
